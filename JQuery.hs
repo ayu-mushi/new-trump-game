@@ -5,9 +5,9 @@ module JQuery
    prevEl,
    whenClick
   ) where
-import Haste
-import Haste.Prim
-import Haste.Foreign
+import Haste (toJSString, Elem)
+import Haste.Prim ()
+import Haste.Foreign (ffi, FFI)
 
 newtype JQuery = JQuery { fromJQuery :: Elem }
 
