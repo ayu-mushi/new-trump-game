@@ -1,5 +1,6 @@
 module JQuery
   (JQuery,
+   childrenEl,
    nextEl,
    prevEl
   ) where
@@ -9,18 +10,20 @@ import Haste.Foreign
 
 newtype JQuery = JQuery { fromJQuery :: Elem }
 
+ffi' :: FFI a => String -> a
+ffi' = ffi . toJSString
+
+childrenEl :: JQuery -> IO JQuery
+childrenEl domEl = do 
+  elem <- ffi' "(function(domEl){ return domEl.children() })" $ fromJQuery domEl
+  return $ JQuery elem
+
 nextEl :: JQuery -> IO JQuery
 nextEl domEl = do 
-  elem <- jsNextEl $ fromJQuery domEl
+  elem <- ffi' "(function(domEl){ return domEl.next() })" $ fromJQuery domEl
   return $ JQuery elem
-  where
-    jsNextEl :: Elem -> IO Elem
-    jsNextEl = ffi $ toJSString "(function(domEl){ return domEl.next() })"
 
 prevEl :: JQuery -> IO JQuery
 prevEl domEl = do 
-  elem <- jsPrevEl $ fromJQuery domEl
+  elem <- ffi' "(function(domEl){ return domEl.prev() })" $ fromJQuery domEl
   return $ JQuery elem
-  where
-    jsPrevEl :: Elem -> IO Elem
-    jsPrevEl = ffi $ toJSString "(function(domEl){ return domEl.prev() })"
