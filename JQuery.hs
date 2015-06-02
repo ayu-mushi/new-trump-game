@@ -2,7 +2,8 @@ module JQuery
   (JQuery,
    childrenEl,
    nextEl,
-   prevEl
+   prevEl,
+   whenClick
   ) where
 import Haste
 import Haste.Prim
@@ -27,3 +28,6 @@ prevEl :: JQuery -> IO JQuery
 prevEl domEl = do 
   elem <- ffi' "(function(domEl){ return domEl.prev() })" $ fromJQuery domEl
   return $ JQuery elem
+
+whenClick :: JQuery -> IO () -> IO ()
+whenClick = ffi' "(function(domEl, f){ domEl.click(f) })" . fromJQuery
