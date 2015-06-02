@@ -42,4 +42,4 @@ Executable new-trump-game
             base == 4.*,
             haste-lib >= 0.1
 
-    ghc-options: -Wall --start=asap --with-js=lib/sjcl.js,lib/bayhac2014-cryptmail.js
+    ghc-options: -Wall
