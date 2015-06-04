@@ -18,11 +18,10 @@ ffi' = ffi . toJSString
 isExistEl :: Elem -> IO Bool
 isExistEl = ffi' "(function(domEl){return domEl[0]?true:false})"
 
-childrenEl :: JQuery -> IO (Maybe JQuery)
+childrenEl :: JQuery -> IO JQuery
 childrenEl domEl = do 
   e <- ffi' "(function(domEl){ return domEl.children() })" $ fromJQuery domEl
-  p <- isExistEl e
-  return $ if p then Just $ JQuery e else Nothing
+  return $ JQuery e
 
 nextEl :: JQuery -> IO (Maybe JQuery)
 nextEl domEl = do 
