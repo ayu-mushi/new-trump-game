@@ -9,6 +9,8 @@ import Haste (toJSString, Elem)
 import Haste.Prim ()
 import Haste.Foreign (ffi, FFI)
 
+import Lens
+
 newtype JQuery = JQuery { fromJQuery :: Elem }
 
 ffi' :: FFI a => String -> a
@@ -23,17 +25,15 @@ childrenEl domEl = do
   e <- ffi' "(function(domEl){ return domEl.children() })" $ fromJQuery domEl
   return $ JQuery e
 
-nextEl :: JQuery -> IO (Maybe JQuery)
+nextEl :: JQuery -> IO JQuery
 nextEl domEl = do 
   e <- ffi' "(function(domEl){ return domEl.next() })" $ fromJQuery domEl
-  p <- isExistEl e
-  return $ if p then Just $ JQuery e else Nothing
+  return $ JQuery e
 
-prevEl :: JQuery -> IO (Maybe JQuery)
+prevEl :: JQuery -> IO JQuery
 prevEl domEl = do 
   e <- ffi' "(function(domEl){ return domEl.prev() })" $ fromJQuery domEl
-  p <- isExistEl e
-  return $ if p then Just $ JQuery e else Nothing
+  return $ JQuery e
 
 whenClick :: JQuery -> IO () -> IO ()
 whenClick = ffi' "(function(domEl, f){ domEl.click(f) })" . fromJQuery
