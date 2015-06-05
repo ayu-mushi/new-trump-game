@@ -15,6 +15,9 @@ import Lens
 newtype JQuery = ToJQuery { fromJQuery :: Elem }
 newtype DOMObj = ToDOMObj { fromDOMObj :: Elem }
 
+sizeEl :: JQuery -> IO Int
+sizeEl = ffi' "(function(domEl){ return domEl.size() })" . fromJQuery
+
 ffi' :: FFI a => String -> a
 ffi' = ffi . toJSString
 
