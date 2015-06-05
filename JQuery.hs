@@ -1,6 +1,6 @@
 module JQuery
-  (JQuery,
-   DOMObj,
+  (JQuery(fromJQuery),
+   DOMObj(fromDOMObj),
    childrenEl,
    nextEl,
    prevEl,
