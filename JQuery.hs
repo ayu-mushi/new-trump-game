@@ -1,5 +1,6 @@
 module JQuery
   (JQuery,
+   DOMObj,
    childrenEl,
    nextEl,
    prevEl,
@@ -12,6 +13,7 @@ import Haste.Foreign (ffi, FFI)
 import Lens
 
 newtype JQuery = JQuery { fromJQuery :: Elem }
+newtype DOMObj = DOMObj { fromDOMObj :: Elem }
 
 ffi' :: FFI a => String -> a
 ffi' = ffi . toJSString
@@ -32,5 +34,5 @@ prevEl :: JQuery -> IO JQuery
 prevEl domEl = fmap JQuery $
   ffi' "(function(domEl){ return domEl.prev() })" $ fromJQuery domEl
 
-whenClick :: JQuery -> (Elem -> IO ()) -> IO ()
-whenClick domEl method = ffi' "(function(domEl, f){ domEl.click(function(){ f(this) }) })" (fromJQuery domEl) method
+whenClick :: JQuery -> (DOMObj -> IO ()) -> IO ()
+whenClick domEl method = ffi' "(function(domEl, f){ domEl.click(function(){ f(this) }) })" (fromJQuery domEl) $ method . DOMObj
