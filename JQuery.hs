@@ -12,8 +12,8 @@ import Haste.Foreign (ffi, FFI)
 
 import Lens
 
-newtype JQuery = JQuery { fromJQuery :: Elem }
-newtype DOMObj = DOMObj { fromDOMObj :: Elem }
+newtype JQuery = ToJQuery { fromJQuery :: Elem }
+newtype DOMObj = ToDOMObj { fromDOMObj :: Elem }
 
 ffi' :: FFI a => String -> a
 ffi' = ffi . toJSString
@@ -23,16 +23,16 @@ isExistEl :: Elem -> IO Bool
 isExistEl = ffi' "(function(domEl){return domEl[0]?true:false})"
 
 childrenEl :: JQuery -> IO JQuery
-childrenEl domEl = fmap JQuery $
+childrenEl domEl = fmap ToJQuery $
   ffi' "(function(domEl){ return domEl.children() })" $ fromJQuery domEl
 
 nextEl :: JQuery -> IO JQuery
-nextEl domEl = fmap JQuery $
+nextEl domEl = fmap ToJQuery $
   ffi' "(function(domEl){ return domEl.next() })" $ fromJQuery domEl
 
 prevEl :: JQuery -> IO JQuery
-prevEl domEl = fmap JQuery $
+prevEl domEl = fmap ToJQuery $
   ffi' "(function(domEl){ return domEl.prev() })" $ fromJQuery domEl
 
 whenClick :: JQuery -> (DOMObj -> IO ()) -> IO ()
-whenClick domEl method = ffi' "(function(domEl, f){ domEl.click(function(){ f(this) }) })" (fromJQuery domEl) $ method . DOMObj
+whenClick domEl method = ffi' "(function(domEl, f){ domEl.click(function(){ f(this) }) })" (fromJQuery domEl) $ method . ToDOMObj
