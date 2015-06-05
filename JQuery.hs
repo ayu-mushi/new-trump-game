@@ -21,19 +21,16 @@ isExistEl :: Elem -> IO Bool
 isExistEl = ffi' "(function(domEl){return domEl[0]?true:false})"
 
 childrenEl :: JQuery -> IO JQuery
-childrenEl domEl = do 
-  e <- ffi' "(function(domEl){ return domEl.children() })" $ fromJQuery domEl
-  return $ JQuery e
+childrenEl domEl = fmap JQuery $
+  ffi' "(function(domEl){ return domEl.children() })" $ fromJQuery domEl
 
 nextEl :: JQuery -> IO JQuery
-nextEl domEl = do 
-  e <- ffi' "(function(domEl){ return domEl.next() })" $ fromJQuery domEl
-  return $ JQuery e
+nextEl domEl = fmap JQuery $
+  ffi' "(function(domEl){ return domEl.next() })" $ fromJQuery domEl
 
 prevEl :: JQuery -> IO JQuery
-prevEl domEl = do 
-  e <- ffi' "(function(domEl){ return domEl.prev() })" $ fromJQuery domEl
-  return $ JQuery e
+prevEl domEl = fmap JQuery $
+  ffi' "(function(domEl){ return domEl.prev() })" $ fromJQuery domEl
 
 whenClick :: JQuery -> IO () -> IO ()
 whenClick = ffi' "(function(domEl, f){ domEl.click(f) })" . fromJQuery
