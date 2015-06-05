@@ -39,3 +39,7 @@ prevEl domEl = fmap ToJQuery $
 
 whenClick :: JQuery -> (DOMObj -> IO ()) -> IO ()
 whenClick domEl method = ffi' "(function(domEl, f){ domEl.click(function(){ f(this) }) })" (fromJQuery domEl) $ method . ToDOMObj
+
+indexEl :: JQuery -> DOMObj -> IO (Maybe Int)
+indexEl domEl subject = fmap (\n -> if n == -1 then Nothing else Just n)
+  $ ffi' "(function(domEl, subj){ return domEl.index(subj) })" (fromJQuery domEl) $ fromDOMObj subject
