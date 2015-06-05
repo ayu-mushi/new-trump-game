@@ -18,6 +18,9 @@ newtype DOMObj = ToDOMObj { fromDOMObj :: Elem }
 ffi' :: FFI a => String -> a
 ffi' = ffi . toJSString
 
+ready :: IO () -> IO ()
+ready = ffi' "(function (f) { jQuery(document).ready(f) })"
+
 -- "jQueryによる要素の存在チェックまとめ: 小粋空間" http://www.koikikukan.com/archives/2012/04/18-022222.php
 isExistEl :: Elem -> IO Bool
 isExistEl = ffi' "(function(domEl){return domEl[0]?true:false})"
