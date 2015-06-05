@@ -32,5 +32,5 @@ prevEl :: JQuery -> IO JQuery
 prevEl domEl = fmap JQuery $
   ffi' "(function(domEl){ return domEl.prev() })" $ fromJQuery domEl
 
-whenClick :: JQuery -> IO () -> IO ()
-whenClick = ffi' "(function(domEl, f){ domEl.click(f) })" . fromJQuery
+whenClick :: JQuery -> (Elem -> IO ()) -> IO ()
+whenClick domEl method = ffi' "(function(domEl, f){ domEl.click(function(){ f(this) }) })" (fromJQuery domEl) method
