@@ -29,23 +29,20 @@ isExistEl :: JQuery -> IO Bool
 isExistEl = ffi' "(function(domEl){return domEl[0]?true:false})" . fromJQuery
 
 childrenEl :: JQuery -> IO JQuery
-childrenEl domEl = fmap JQuery $
-  ffi' "(function(domEl){ return domEl.children() })" $ fromJQuery domEl
+childrenEl = fmap JQuery . ffi' "(function(domEl){ return domEl.children() })" . fromJQuery
 
 nextEl :: JQuery -> IO JQuery
-nextEl domEl = fmap JQuery $
-  ffi' "(function(domEl){ return domEl.next() })" $ fromJQuery domEl
+nextEl = fmap JQuery . ffi' "(function(domEl){ return domEl.next() })" . fromJQuery
 
 prevEl :: JQuery -> IO JQuery
-prevEl domEl = fmap JQuery $
-  ffi' "(function(domEl){ return domEl.prev() })" $ fromJQuery domEl
+prevEl = fmap JQuery . ffi' "(function(domEl){ return domEl.prev() })" . fromJQuery
 
 whenClick :: JQuery -> (DOMObj -> IO ()) -> IO ()
-whenClick domEl method = ffi' "(function(domEl, f){ domEl.click(function(){ f(this) }) })" (fromJQuery domEl) $ method . DOMObj
+whenClick (JQuery domEl) method = ffi' "(function(domEl, f){ domEl.click(function(){ f(this) }) })" domEl $ method . DOMObj
 
 appendEl :: String -> JQuery -> IO ()
 appendEl str = ffi' "(function(str, domEl){ domEl.append(str) })" str . fromJQuery
 
 indexEl :: JQuery -> DOMObj -> IO (Maybe Int)
-indexEl domEl subject = fmap (\n -> if n == -1 then Nothing else Just n)
-  $ ffi' "(function(domEl, subj){ return domEl.index(subj) })" (fromJQuery domEl) $ fromDOMObj subject
+indexEl (JQuery domEl) (DOMObj subject) = fmap (\n -> if n == -1 then Nothing else Just n)
+  $ ffi' "(function(domEl, subj){ return domEl.index(subj) })" domEl subject
