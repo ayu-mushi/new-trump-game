@@ -11,6 +11,7 @@ import Haste.Prim ()
 import Haste.Foreign (ffi, FFI)
 
 import Lens
+import Html5
 
 newtype JQuery = JQuery { fromJQuery :: Elem }
 newtype DOMObj = DOMObj { fromDOMObj :: Elem }
@@ -40,8 +41,8 @@ prevEl = fmap JQuery . ffi' "(function(domEl){ return domEl.prev() })" . fromJQu
 whenClick :: JQuery -> (DOMObj -> IO ()) -> IO ()
 whenClick (JQuery domEl) method = ffi' "(function(domEl, f){ domEl.click(function(){ f(this) }) })" domEl $ method . DOMObj
 
-appendEl :: String -> JQuery -> IO ()
-appendEl str = ffi' "(function(str, domEl){ domEl.append(str) })" str . fromJQuery
+appendEl :: Html5Elem -> JQuery -> IO ()
+appendEl e = ffi' "(function(str, domEl){ domEl.append(str) })" (show e) . fromJQuery
 
 indexEl :: JQuery -> DOMObj -> IO (Maybe Int)
 indexEl (JQuery domEl) (DOMObj subject) = fmap (\n -> if n == -1 then Nothing else Just n)
