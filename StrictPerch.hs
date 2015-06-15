@@ -1,7 +1,7 @@
-module StrictPerch (DomObj, indexEl, document, body) where
+module StrictPerch (DomObj(fromDomObj), indexEl, document, body) where
 
-import Haste.Foreign (ffi)
 import Haste (toJSString, Elem)
+import Haste.Foreign (ffi)
 import qualified Haste.Perch as P (PerchM(..), Perch, getBody, getDocument)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -13,11 +13,14 @@ isNull = unsafePerformIO . (ffi $ toJSString "(function(x) {return x === null;})
 
 newtype DomObj = DomObj { fromDomObj :: Elem }
 
+toStrict :: P.Perch -> DomObj -> IO DomObj
+toStrict = (fmap DomObj.) . (.fromDomObj) . P.build
+
 -- ref: http://www.tagindex.com/kakolog/q4bbs/1701/1993.html
 indexEl :: DomObj -> IO Int
 indexEl = (indexEl' `flip` 0) . fromDomObj
   where
-    indexEl' :: Elem -> Int -> IO Int 
+    indexEl' :: Elem -> Int -> IO Int
     indexEl' tag i =
       if isNull tag
         then return i
