@@ -1,8 +1,8 @@
-module StrictPerch (DomObj, indexEl) where
+module StrictPerch (DomObj, indexEl, document, body) where
 
 import Haste.Foreign (ffi)
 import Haste (toJSString, Elem)
-import qualified Haste.Perch as P (PerchM(..), Perch)
+import qualified Haste.Perch as P (PerchM(..), Perch, getBody, getDocument)
 import System.IO.Unsafe (unsafePerformIO)
 
 prevNode :: P.Perch
@@ -24,3 +24,9 @@ indexEl = (indexEl' `flip` 0) . fromDomObj
         else do
           tag' <- P.build prevNode tag
           indexEl' tag' $ succ i
+
+document :: IO DomObj
+document = fmap DomObj P.getDocument
+
+body :: IO DomObj
+body = fmap DomObj P.getBody
