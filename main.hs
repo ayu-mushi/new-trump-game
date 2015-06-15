@@ -30,6 +30,7 @@ isNull = unsafePerformIO . (ffi $ toJSString "(function(x) {return x === null;})
 
 newtype DomObj = DomObj { fromDomObj :: Elem }
 
+-- ref: http://www.tagindex.com/kakolog/q4bbs/1701/1993.html
 indexEl :: DomObj -> IO Int
 indexEl = (indexEl' `flip` 0) . fromDomObj
   where
