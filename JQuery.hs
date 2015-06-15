@@ -7,11 +7,7 @@ module JQuery
    whenClick
   ) where
 import Haste (toJSString, Elem)
-import Haste.Prim ()
 import Haste.Foreign (ffi, FFI)
-
-import Lens
-import Html5
 
 newtype JQuery = JQuery { fromJQuery :: Elem }
 newtype DOMObj = DOMObj { fromDOMObj :: Elem }
