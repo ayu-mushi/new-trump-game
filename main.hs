@@ -2,7 +2,7 @@ import Data.Array (Array(Array))
 import System.Random.Shuffle (shuffleM)
 import Haste (mkCallback, alert, JSFun(JSFun), Elem, toJSString)
 import Haste.Foreign (ffi, Unpacked)
-import qualified Haste.Perch as P
+import qualified Haste.Perch as P (PerchM(..), Perch)
 import System.IO.Unsafe (unsafePerformIO)
 
 import Cards
@@ -25,11 +25,19 @@ turnPlayer (p, a, b) = if p then a else b
 prevNode :: P.Perch
 prevNode = P.Perch $ ffi $ toJSString "function(node){ return node.previousSibling }"
 
-isNull :: Unpacked -> Bool
+isNull :: Elem -> Bool
 isNull = unsafePerformIO . (ffi $ toJSString "(function(x) {return x === null;})")
 
-indexEl :: P.Perch -> P.Perch -> IO (Maybe Int)
-indexEl = undefined
+indexEl :: Elem -> IO Int
+indexEl = indexEl' `flip` 0
+  where
+    indexEl' :: Elem -> Int -> IO Int 
+    indexEl' tag i =
+      if isNull tag
+        then return i
+        else do
+          tag' <- P.build prevNode tag
+          indexEl' tag' $ succ i
 
 foreign import ccall "setInterval" timeout :: JSFun (IO ()) -> Int -> IO ()
 
