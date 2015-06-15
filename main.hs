@@ -28,8 +28,10 @@ prevNode = P.Perch $ ffi $ toJSString "function(node){ return node.previousSibli
 isNull :: Elem -> Bool
 isNull = unsafePerformIO . (ffi $ toJSString "(function(x) {return x === null;})")
 
-indexEl :: Elem -> IO Int
-indexEl = indexEl' `flip` 0
+newtype DomObj = DomObj { fromDomObj :: Elem }
+
+indexEl :: DomObj -> IO Int
+indexEl = (indexEl' `flip` 0) . fromDomObj
   where
     indexEl' :: Elem -> Int -> IO Int 
     indexEl' tag i =
