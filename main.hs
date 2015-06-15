@@ -1,10 +1,8 @@
 import Data.Array (Array(Array))
 import System.Random.Shuffle (shuffleM)
-import Haste (mkCallback, alert, JSFun(JSFun), Elem, toJSString)
-import Haste.Foreign (ffi, Unpacked)
-import qualified Haste.Perch as P (PerchM(..), Perch)
-import System.IO.Unsafe (unsafePerformIO)
+import Haste (mkCallback, alert, JSFun(JSFun), Elem)
 
+import StrictPerch
 import Cards
 
 data Player = Player {
@@ -21,26 +19,6 @@ data Game = Game {
 
 turnPlayer :: (Bool, Player, Player) -> Player
 turnPlayer (p, a, b) = if p then a else b
-
-prevNode :: P.Perch
-prevNode = P.Perch $ ffi $ toJSString "function(node){ return node.previousSibling }"
-
-isNull :: Elem -> Bool
-isNull = unsafePerformIO . (ffi $ toJSString "(function(x) {return x === null;})")
-
-newtype DomObj = DomObj { fromDomObj :: Elem }
-
--- ref: http://www.tagindex.com/kakolog/q4bbs/1701/1993.html
-indexEl :: DomObj -> IO Int
-indexEl = (indexEl' `flip` 0) . fromDomObj
-  where
-    indexEl' :: Elem -> Int -> IO Int 
-    indexEl' tag i =
-      if isNull tag
-        then return i
-        else do
-          tag' <- P.build prevNode tag
-          indexEl' tag' $ succ i
 
 foreign import ccall "setInterval" timeout :: JSFun (IO ()) -> Int -> IO ()
 
