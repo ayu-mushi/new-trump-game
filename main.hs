@@ -1,6 +1,7 @@
 import Data.Array (Array(Array))
 import System.Random.Shuffle (shuffleM)
-import Haste (mkCallback, alert, JSFun(..))
+import Haste (mkCallback, alert, JSFun(JSFun))
+import qualified Haste.Perch as P
 
 import Cards
 
