@@ -3,6 +3,7 @@ module Html5
 
 import Data.Maybe (isNothing, fromJust)
 import Data.List (unwords)
+import Haste.Perch ()
 
 data Html5Elem = DivEl Div
 
