@@ -1,8 +1,9 @@
 import Data.Array (Array(Array))
 import System.Random.Shuffle (shuffleM)
 import Haste (mkCallback, alert, JSFun(JSFun), Elem, toJSString)
-import Haste.Foreign (ffi)
+import Haste.Foreign (ffi, Unpacked)
 import qualified Haste.Perch as P
+import System.IO.Unsafe (unsafePerformIO)
 
 import Cards
 
@@ -23,6 +24,9 @@ turnPlayer (p, a, b) = if p then a else b
 
 prevNode :: P.Perch
 prevNode = P.Perch $ ffi $ toJSString "function(node){ return node.previousSibling }"
+
+isNull :: Unpacked -> Bool
+isNull = unsafePerformIO . (ffi $ toJSString "(function(x) {return x === null;})")
 
 indexEl :: P.Perch -> P.Perch -> IO (Maybe Int)
 indexEl = undefined
