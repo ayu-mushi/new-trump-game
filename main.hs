@@ -3,7 +3,6 @@ import System.Random.Shuffle (shuffleM)
 import Haste (mkCallback, alert, JSFun(..))
 
 import Cards
-import JQuery
 
 data Player = Player {
   hand :: [Card],
