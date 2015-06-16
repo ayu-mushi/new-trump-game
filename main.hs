@@ -1,10 +1,9 @@
 module Main (main) where
-import Data.Array (Array(Array))
 import System.Random.Shuffle (shuffleM)
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
 import Haste.Foreign (ffi)
 import System.IO.Unsafe (unsafePerformIO)
-import qualified Haste.Perch as P (build, PerchM(Perch), Perch, forElems, getBody, parent)
+import qualified Haste.Perch as P (build, PerchM(Perch), Perch, forElems, getBody, parent, ToElem(..))
 import Control.Monad (void)
 
 import Cards
@@ -14,7 +13,10 @@ data Player = Player {
   deck :: [Card]
   }
 
-newtype Field = Field { fromField :: Array (Int, Int) Card }
+newtype Field = Field { fromField :: [[Card]] }
+
+instance P.ToElem Field where
+  toElem = undefined
 
 data Game = Game {
   players :: (Bool, Player, Player),
