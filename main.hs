@@ -1,9 +1,11 @@
+module Main (main) where
 import Data.Array (Array(Array))
 import System.Random.Shuffle (shuffleM)
-import Haste (mkCallback, alert, JSFun(JSFun), Elem, toJSString)
+import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
 import Haste.Foreign (ffi)
 import System.IO.Unsafe (unsafePerformIO)
-import qualified Haste.Perch as P (build, PerchM(Perch), Perch)
+import qualified Haste.Perch as P (build, PerchM(Perch), Perch, forElems, getBody)
+import Control.Monad (void)
 
 import Cards
 
@@ -22,24 +24,49 @@ data Game = Game {
 turnPlayer :: (Bool, Player, Player) -> Player
 turnPlayer (p, a, b) = if p then a else b
 
-prevNode :: P.Perch
-prevNode = P.Perch $ ffi $ toJSString "function(node){ return node.previousSibling }"
+isNull :: Elem -> IO Bool
+isNull = ffi $ toJSString "(function(x) {return x === null})"
 
-isNull :: Elem -> Bool
-isNull = unsafePerformIO . (ffi $ toJSString "(function(x) {return x === null;})")
+isElementNode :: Elem -> IO Bool
+isElementNode = ffi $ toJSString "(function(n) {return n.nodeType === 1})"
+
+prevElem :: Elem -> IO (Maybe Elem)
+prevElem el = do
+  prevNode <- jsPreviousSibling el
+  is0 <- isNull prevNode
+  if is0
+    then return Nothing
+    else do
+      isEl <- isElementNode prevNode
+      if isEl
+        then return $ Just prevNode
+        else prevElem prevNode
+  where
+    jsPreviousSibling = ffi $ toJSString "(function(e){ return e.previousSibling })"
 
 indexEl :: Elem -> IO Int
 indexEl = (indexEl' `flip` 0)
   where
     indexEl' :: Elem -> Int -> IO Int
-    indexEl' tag i =
-      if isNull tag
-        then return i
-        else do
-          tag' <- P.build prevNode tag
-          indexEl' tag' $ succ i
+    indexEl' tag i = do
+      tag' <- prevElem tag
+      case tag' of
+        Nothing -> return i
+        Just el -> indexEl' el $ succ i
 
-foreign import ccall "setInterval" timeout :: JSFun (IO ()) -> Int -> IO ()
+forTargetWhenEvt :: Elem -> Event IO a -> (Elem -> IO ()) -> IO ()
+forTargetWhenEvt el event action = void $ jsAddEventListener el (evtName event) action
+  where
+    jsAddEventListener :: Elem -> String -> (Elem -> IO ()) -> IO ()
+    jsAddEventListener = ffi $ toJSString "(function(node, evtName, f){ node.addEventListener(evtName, (function(e){ f(e.target) }))})"
+
+forNumberOfClickedElem :: Elem -> (Int -> IO ()) -> IO ()
+forNumberOfClickedElem el f = forTargetWhenEvt el OnClick $ (>>= f) . indexEl
 
 main :: IO ()
-main = flip timeout 500 . mkCallback . alert $ "hello"
+main = do
+  body <- P.getBody
+  flip P.build body $ P.forElems "ul" $ P.Perch $ \e -> do
+    forNumberOfClickedElem e (alert . show)
+    return e
+  return ()
