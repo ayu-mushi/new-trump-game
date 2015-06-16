@@ -8,11 +8,14 @@ import Control.Monad (void)
 import Data.Monoid (mconcat)
 
 import Cards
+import Lens
 
 data Player = Player {
-  hand :: [Card],
-  deck :: [Card]
+  _hand :: [Card],
+  _deck :: [Card]
   }
+hand :: Lens' Player [Card]; hand = lens _hand $ \p x -> p { _hand = x}
+deck :: Lens' Player [Card]; deck = lens _deck $ \p x -> p { _deck = x}
 
 newtype Field = Field { fromField :: [[Card]] }
 
@@ -22,18 +25,20 @@ instance P.ToElem Field where
     mconcat $ map (P.th . mconcat . map P.td) xss
 
 data Game = Game {
-  players :: (Bool, Player, Player),
-  field :: Field
+  _players :: (Bool, Player, Player),
+  _field :: Field
   }
+players :: Lens' Game (Bool, Player, Player); players = lens _players (\p x -> p { _players = x })
+field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
 
 instance P.ToElem Game where
   toElem game = do
-    P.toElem $ field game
-    let (turnPlayer, a, b) = players game
+    P.toElem $ game ^. field
+    let (turnPlayer, a, b) = game ^. players
     refreshPlayerHtml a "mine"
     refreshPlayerHtml b "yours"
     where
-      refreshPlayerHtml x name = (P.div $ (P.ol $ mconcat $ map (P.li . show) $ hand x) P.! P.atr "class" "hand") P.! P.atr "class" name
+      refreshPlayerHtml x name = (P.div $ (P.ol $ mconcat $ map (P.li . show) $ x ^. hand) P.! P.atr "class" "hand") P.! P.atr "class" name
 
 turnPlayer :: (Bool, Player, Player) -> Player
 turnPlayer (p, a, b) = if p then a else b
