@@ -3,8 +3,9 @@ import System.Random.Shuffle (shuffleM)
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
 import Haste.Foreign (ffi)
 import System.IO.Unsafe (unsafePerformIO)
-import qualified Haste.Perch as P (build, PerchM(Perch), Perch, forElems, getBody, parent, ToElem(..))
+import qualified Haste.Perch as P (build, PerchM(Perch), Perch, forElems, getBody, parent, ToElem(..), clear, th, td)
 import Control.Monad (void)
+import Data.Monoid (mconcat)
 
 import Cards
 
@@ -16,7 +17,9 @@ data Player = Player {
 newtype Field = Field { fromField :: [[Card]] }
 
 instance P.ToElem Field where
-  toElem = undefined
+  toElem (Field xss) = P.forElems "table#field" $ do
+    P.clear
+    mconcat $ map (P.th . mconcat . map P.td) xss
 
 data Game = Game {
   players :: (Bool, Player, Player),
