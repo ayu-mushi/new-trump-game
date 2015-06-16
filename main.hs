@@ -4,7 +4,7 @@ import System.Random.Shuffle (shuffleM)
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
 import Haste.Foreign (ffi)
 import System.IO.Unsafe (unsafePerformIO)
-import qualified Haste.Perch as P (build, PerchM(Perch), Perch, forElems, getBody)
+import qualified Haste.Perch as P (build, PerchM(Perch), Perch, forElems, getBody, parent)
 import Control.Monad (void)
 
 import Cards
@@ -53,24 +53,39 @@ indexEl = (indexEl' `flip` 0)
         Nothing -> return i
         Just el -> indexEl' el $ succ i
 
+indexOfParentEl :: Elem -> IO Int
+indexOfParentEl = (>>=indexEl) . P.parent
+
 forTargetWhenEvt :: Elem -> Event IO a -> (Elem -> IO ()) -> IO ()
 forTargetWhenEvt el event action = void $ jsAddEventListener el (evtName event) action
   where
     jsAddEventListener :: Elem -> String -> (Elem -> IO ()) -> IO ()
     jsAddEventListener = ffi $ toJSString "(function(node, evtName, f){ node.addEventListener(evtName, (function(e){ f(e.target) }))})"
 
-forNumberOfClickedLiElem :: Elem -> (Int -> IO ()) -> IO ()
-forNumberOfClickedLiElem el f = forTargetWhenEvt el OnClick $ 
+forIndexOfClickedLiElem :: (Int -> IO ()) -> Elem -> IO ()
+forIndexOfClickedLiElem f el = forTargetWhenEvt el OnClick $ 
   \el -> do
     tn <- tagName el
     if tn == "LI"
       then indexEl el >>= f
       else return ()
 
+forIndexOfClickedTdElem :: (Int -> Int -> IO ()) -> Elem -> IO ()
+forIndexOfClickedTdElem f el = forTargetWhenEvt el OnClick $
+  \el -> do
+    tn <- tagName el
+    if tn == "TD"
+      then do
+        x <- indexOfParentEl el
+        y <- indexEl el
+        f x y
+      else
+        return ()
+
 main :: IO ()
 main = do
   body <- P.getBody
   flip P.build body $ P.forElems "ul" $ P.Perch $ \e -> do
-    forNumberOfClickedLiElem e (alert . show)
+    forIndexOfClickedLiElem (alert . show) e
     return e
   return ()
