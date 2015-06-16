@@ -3,7 +3,7 @@ import System.Random.Shuffle (shuffleM)
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
 import Haste.Foreign (ffi)
 import System.IO.Unsafe (unsafePerformIO)
-import qualified Haste.Perch as P (build, PerchM(Perch), Perch, forElems, getBody, parent, ToElem(..), clear, th, td)
+import qualified Haste.Perch as P
 import Control.Monad (void)
 import Data.Monoid (mconcat)
 
@@ -25,6 +25,15 @@ data Game = Game {
   players :: (Bool, Player, Player),
   field :: Field
   }
+
+instance P.ToElem Game where
+  toElem game = do
+    P.toElem $ field game
+    let (turnPlayer, a, b) = players game
+    refreshPlayerHtml a "mine"
+    refreshPlayerHtml b "yours"
+    where
+      refreshPlayerHtml x name = (P.div $ (P.ol $ mconcat $ map (P.li . show) $ hand x) P.! P.atr "class" "hand") P.! P.atr "class" name
 
 turnPlayer :: (Bool, Player, Player) -> Player
 turnPlayer (p, a, b) = if p then a else b
