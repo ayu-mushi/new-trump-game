@@ -24,11 +24,8 @@ data Game = Game {
 turnPlayer :: (Bool, Player, Player) -> Player
 turnPlayer (p, a, b) = if p then a else b
 
-isNull :: Elem -> IO Bool
-isNull = ffi $ toJSString "(function(x) {return x === null})"
-
-isElementNode :: Elem -> IO Bool
-isElementNode = ffi $ toJSString "(function(n) {return n.nodeType === 1})"
+tagName :: Elem -> IO String
+tagName = ffi $ toJSString "(function(e){ return e.tagName })"
 
 prevElem :: Elem -> IO (Maybe Elem)
 prevElem el = do
@@ -43,6 +40,8 @@ prevElem el = do
         else prevElem prevNode
   where
     jsPreviousSibling = ffi $ toJSString "(function(e){ return e.previousSibling })"
+    isNull = ffi $ toJSString "(function(x) {return x === null})"
+    isElementNode = ffi $ toJSString "(function(node) {return node.nodeType === 1})"
 
 indexEl :: Elem -> IO Int
 indexEl = (indexEl' `flip` 0)
@@ -60,13 +59,18 @@ forTargetWhenEvt el event action = void $ jsAddEventListener el (evtName event) 
     jsAddEventListener :: Elem -> String -> (Elem -> IO ()) -> IO ()
     jsAddEventListener = ffi $ toJSString "(function(node, evtName, f){ node.addEventListener(evtName, (function(e){ f(e.target) }))})"
 
-forNumberOfClickedElem :: Elem -> (Int -> IO ()) -> IO ()
-forNumberOfClickedElem el f = forTargetWhenEvt el OnClick $ (>>= f) . indexEl
+forNumberOfClickedLiElem :: Elem -> (Int -> IO ()) -> IO ()
+forNumberOfClickedLiElem el f = forTargetWhenEvt el OnClick $ 
+  \el -> do
+    tn <- tagName el
+    if tn == "LI"
+      then indexEl el >>= f
+      else return ()
 
 main :: IO ()
 main = do
   body <- P.getBody
   flip P.build body $ P.forElems "ul" $ P.Perch $ \e -> do
-    forNumberOfClickedElem e (alert . show)
+    forNumberOfClickedLiElem e (alert . show)
     return e
   return ()
