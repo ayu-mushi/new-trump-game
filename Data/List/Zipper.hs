@@ -14,5 +14,5 @@ fromList as = Zip [] as
 toList :: Zipper a -> [a]
 toList (Zip ls rs) = reverse ls ++ rs
 
-cursor :: Lens' (Zipper a) a
-cursor = lens (\(Zip _ (a:_)) -> a) $ \(Zip ls (_:rs)) a -> Zip ls (a:rs)
+focus :: Lens' (Zipper a) a
+focus = lens (\(Zip _ (a:_)) -> a) $ \(Zip ls (_:rs)) a -> Zip ls (a:rs)
