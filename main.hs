@@ -42,11 +42,15 @@ instance P.ToElem Game where
     refreshPlayerHtml b "yours"
     P.forElems "#turnplayer" $ do
       P.clear
-      P.toElem $ "--" ++ (if turnPlayer then "あなた" else "コンピュータ") ++ "の番です"
+      P.toElem $ "-- " ++ (if turnPlayer then "あなた" else "コンピュータ") ++ "の番です"
     where
-      refreshPlayerHtml x name = P.forElems ("#"++name++" .hand") $ do
-        P.clear
-        mconcat $ map (P.li . show) $ x ^. hand
+      refreshPlayerHtml x name = do
+        P.forElems ("#"++name++" .deck") $ do
+          P.clear
+          P.toElem $ show $ length $ x ^. deck
+        P.forElems ("#"++name++" .hand") $ do
+          P.clear
+          mconcat $ map (P.li . show) $ x ^. hand
 
 turnPlayer :: (Bool, Player, Player) -> Player
 turnPlayer (p, a, b) = if p then a else b
