@@ -47,7 +47,7 @@ instance P.ToElem Game where
       refreshPlayerHtml x name = do
         P.forElems ("#"++name++" .deck") $ do
           P.clear
-          P.toElem $ "残り山札: " ++ (show $ length $ x ^. deck)
+          P.toElem $ (if name == "computers" then "コンピュータ" else "あなた") ++ "の残り山札: " ++ (show $ length $ x ^. deck)
         P.forElems ("#"++name++" .hand") $ do
           P.clear
           mconcat $ map (P.li . show) $ x ^. hand
