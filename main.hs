@@ -38,8 +38,8 @@ instance P.ToElem Game where
   toElem game = do
     P.toElem $ game ^. field
     let (turnPlayer, a, b) = game ^. players
-    refreshPlayerHtml a "mine"
-    refreshPlayerHtml b "yours"
+    refreshPlayerHtml a "yours"
+    refreshPlayerHtml b "computers"
     P.forElems "#turnplayer" $ do
       P.clear
       P.toElem $ "-- " ++ (if turnPlayer then "あなた" else "コンピュータ") ++ "の番です"
