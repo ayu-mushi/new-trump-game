@@ -1,5 +1,4 @@
 module Main (main) where
-import System.Random.Shuffle (shuffleM)
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
 import Haste.Foreign (ffi)
 import System.IO.Unsafe (unsafePerformIO)
@@ -17,7 +16,7 @@ data Player = Player {
 hand :: Lens' Player [Card]; hand = lens _hand $ \p x -> p { _hand = x}
 deck :: Lens' Player [Card]; deck = lens _deck $ \p x -> p { _deck = x}
 
-newtype Field = Field { fromField :: [[Card]] }
+newtype Field = Field { fromField :: [[Maybe Card]] }
 
 instance P.ToElem Field where
   toElem (Field xss) = P.forElems "table#field" $ do
@@ -101,10 +100,16 @@ forIndexOfClickedTdElem f el = forTargetWhenEvt el OnClick $
       else
         return ()
 
+initialDraw :: [Card] -> Player
+initialDraw deck = Player (take 3 deck) (drop 3 deck)
+
+initGame :: IO Game
+initGame = do
+  deck0 <- initDeck
+  deck1 <- initDeck
+
+  return $
+    Game { _players = (True, initialDraw deck0, initialDraw deck1),_field = Field $ replicate 3 (replicate 5 Nothing)}
+
 main :: IO ()
-main = do
-  body <- P.getBody
-  flip P.build body $ P.forElems "ul" $ P.Perch $ \e -> do
-    forIndexOfClickedLiElem (alert . show) e
-    return e
-  return ()
+main = undefined
