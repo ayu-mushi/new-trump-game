@@ -21,7 +21,11 @@ newtype Field = Field { fromField :: [[Maybe Card]] }
 instance P.ToElem Field where
   toElem (Field xss) = P.forElems "table#field" $ do
     P.clear
-    mconcat $ map (P.th . mconcat . map P.td) xss
+    mconcat $ map (P.tr . mconcat . map (P.td . showMaybeCard)) xss
+    where
+      showMaybeCard mbcard = case mbcard of
+        Nothing -> ""
+        Just card -> show card
 
 data Game = Game {
   _players :: (Bool, Player, Player),
@@ -36,8 +40,13 @@ instance P.ToElem Game where
     let (turnPlayer, a, b) = game ^. players
     refreshPlayerHtml a "mine"
     refreshPlayerHtml b "yours"
+    P.forElems "#turnplayer" $ do
+      P.clear
+      P.toElem $ "--" ++ (if turnPlayer then "あなた" else "コンピュータ") ++ "の番です"
     where
-      refreshPlayerHtml x name = (P.div $ (P.ol $ mconcat $ map (P.li . show) $ x ^. hand) P.! P.atr "class" "hand") P.! P.atr "class" name
+      refreshPlayerHtml x name = P.forElems ("#"++name++" .hand") $ do
+        P.clear
+        mconcat $ map (P.li . show) $ x ^. hand
 
 turnPlayer :: (Bool, Player, Player) -> Player
 turnPlayer (p, a, b) = if p then a else b
@@ -109,7 +118,11 @@ initGame = do
   deck1 <- initDeck
 
   return $
-    Game { _players = (True, initialDraw deck0, initialDraw deck1),_field = Field $ replicate 3 (replicate 5 Nothing)}
+    Game { _players = (True, initialDraw deck0, initialDraw deck1),_field = Field $ replicate 5 (replicate 3 Nothing)}
 
 main :: IO ()
-main = undefined
+main = do
+  game <- initGame
+  body <- P.getBody
+  P.build (P.toElem game) body
+  return ()
