@@ -2,8 +2,10 @@ module NewTrumpGame.GameState
   (initGame) where
 import Data.Monoid (mconcat)
 import qualified Haste.Perch as P
+import Data.List.Zipper
 
-import Lens
+import Control.Lens
+
 import NewTrumpGame.Cards
 
 data Player = Player {
