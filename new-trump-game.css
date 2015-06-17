@@ -26,12 +26,15 @@ ol.hand li{
 	margin: 0 5px;
 	font-size: x-large;
 }
-ol.hand li.selected{
+#yours ol.hand li.selected{
+  color: #ff0000;
+}
+#yours ol.hand li.selected:hover{
 	color: #ff0000;
 }
-ol.hand li.selected:hover{
-	color: #ff0000;
-}
-ol.hand li:hover{
+#yours ol.hand li:hover{
 	color: #88ff88;
+}
+#yours .deck:hover{
+  color: #88ff88;
 }
