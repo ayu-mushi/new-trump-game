@@ -47,7 +47,7 @@ instance P.ToElem Game where
           P.toElem $ (if name == "computers" then "コンピュータ" else "あなた") ++ "の残り山札: " ++ (show $ length $ x ^. deck)
         P.forElems ("#"++name++" .hand") $ do
           P.clear
-          mconcat $ map (P.li . (if name == "computers" then const "□" else show)) $ x ^. hand
+          mconcat $ map (P.li . (if name == "computers" then const "?" else show)) $ x ^. hand
 
 turnPlayer :: (Bool, Player, Player) -> Player
 turnPlayer (p, a, b) = if p then a else b
