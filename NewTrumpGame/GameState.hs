@@ -2,8 +2,6 @@ module NewTrumpGame.GameState
   (initGame) where
 import Data.Monoid (mconcat)
 import qualified Haste.Perch as P
-import Data.List.Zipper
-
 import Control.Lens
 
 import NewTrumpGame.Cards
