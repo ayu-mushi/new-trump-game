@@ -46,9 +46,6 @@ instance P.ToElem Game where
 turnPlayer :: (Bool, Player, Player) -> Player
 turnPlayer (p, a, b) = if p then a else b
 
-initialDraw :: [Card] -> Player
-initialDraw deck = Player (take 3 deck) (drop 3 deck)
-
 initGame :: IO Game
 initGame = do
   deck0 <- initDeck
