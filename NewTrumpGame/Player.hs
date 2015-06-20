@@ -1,5 +1,5 @@
 module NewTrumpGame.Player
-  (Player(..), ComputerPlayer, HumanPlayer, focus) where
+  (Player(..), ComputerPlayer, HumanPlayer, selectedHand) where
 
 import Control.Lens
 import NewTrumpGame.Cards
@@ -31,3 +31,6 @@ instance Player HumanPlayer where
 
 focus :: Lens' ([a], [a]) a
 focus = lens (\(_, (x:_)) -> x) $ \(a, (_:c)) x -> (a, x:c)
+
+selectedHand :: Lens' HumanPlayer Card
+selectedHand = lens (\x -> humanHand x) (\(HumanPlayer _ deck) x -> HumanPlayer x deck) . focus
