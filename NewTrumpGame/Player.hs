@@ -1,5 +1,5 @@
 module NewTrumpGame.Player
-  (Player(..), ComputerPlayer, HumanPlayer) where
+  (Player(..), ComputerPlayer, HumanPlayer, focus) where
 
 import Control.Lens
 import NewTrumpGame.Cards
@@ -28,3 +28,6 @@ instance Player HumanPlayer where
   hand = lens (uncurry ((++) . reverse). humanHand) $ \p x -> p { humanHand = ([], x) }
   deck = lens humanDeck $ \p x -> p { humanDeck = x }
   initialDraw deck = HumanPlayer ([], (take 3 deck)) $ drop 3 deck
+
+focus :: Lens' ([a], [a]) a
+focus = lens (\(_, (x:_)) -> x) $ \(a, (_:c)) x -> (a, x:c)
