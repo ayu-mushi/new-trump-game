@@ -1,24 +1,30 @@
 module NewTrumpGame.Player
-  (Player, hand, deck, initialDraw) where
+  (Player(..), ComputerPlayer, HumanPlayer) where
 
 import Control.Lens
 import NewTrumpGame.Cards
 
-data Player = Player {
-  _hand :: [Card],
-  _deck :: [Card]
-  }
-hand :: Lens' Player [Card]; hand = lens _hand $ \p x -> p { _hand = x}
-deck :: Lens' Player [Card]; deck = lens _deck $ \p x -> p { _deck = x}
+class Player a where
+  hand :: Lens' a [Card]
+  deck :: Lens' a [Card]
+  initialDraw :: [Card] -> a
 
 data ComputerPlayer = ComputerPlayer {
   cpHand :: [Card],
   cpDeck :: [Card]
   }
+
+instance Player ComputerPlayer where
+  hand = lens cpHand $ \p x -> p { cpHand = x }
+  deck = lens cpDeck $ \p x -> p { cpDeck = x }
+  initialDraw deck = ComputerPlayer (take 3 deck) (drop 3 deck)
+
 data HumanPlayer = HumanPlayer {
   humanHand :: ([Card], [Card]),
   humanDeck :: [Card]
   }
 
-initialDraw :: [Card] -> Player
-initialDraw deck = Player (take 3 deck) (drop 3 deck)
+instance Player HumanPlayer where
+  hand = lens (uncurry ((++) . reverse). humanHand) $ \p x -> p { humanHand = ([], x) }
+  deck = lens humanDeck $ \p x -> p { humanDeck = x }
+  initialDraw deck = HumanPlayer ([], (take 3 deck)) $ drop 3 deck

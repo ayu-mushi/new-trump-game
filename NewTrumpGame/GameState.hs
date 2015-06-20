@@ -19,16 +19,16 @@ instance P.ToElem Field where
         Just card -> show card
 
 data Game = Game {
-  _players :: (Bool, Player, Player),
+  _players :: (Bool, (HumanPlayer, ComputerPlayer)),
   _field :: Field
   }
-players :: Lens' Game (Bool, Player, Player); players = lens _players (\p x -> p { _players = x })
+players :: Lens' Game (Bool, (HumanPlayer, ComputerPlayer)); players = lens _players (\p x -> p { _players = x })
 field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
 
 instance P.ToElem Game where
   toElem game = do
     P.toElem $ game ^. field
-    let (turnPlayer, a, b) = game ^. players
+    let (turnPlayer, (a, b)) = game ^. players
     refreshPlayerHtml a "yours"
     refreshPlayerHtml b "computers"
     P.forElems "#turnplayer" $ do
@@ -43,13 +43,10 @@ instance P.ToElem Game where
           P.clear
           mconcat $ map (P.li . (if name == "computers" then const "?" else show)) $ x ^. hand
 
-turnPlayer :: (Bool, Player, Player) -> Player
-turnPlayer (p, a, b) = if p then a else b
-
 initGame :: IO Game
 initGame = do
   deck0 <- initDeck
   deck1 <- initDeck
 
   return $
-    Game { _players = (True, initialDraw deck0, initialDraw deck1),_field = Field $ replicate 5 (replicate 3 Nothing)}
+    Game { _players = (True, (initialDraw deck0, initialDraw deck1)),_field = Field $ replicate 5 (replicate 3 Nothing)}
