@@ -1,7 +1,9 @@
 module NewTrumpGame.Player
   (Player(..), ComputerPlayer, HumanPlayer, selectedHand, selectNextHand, selectBeginHand) where
 
-import Control.Lens
+import Lens.Family2
+import Lens.Family2.Unchecked
+
 import NewTrumpGame.Cards
 
 class Player a where

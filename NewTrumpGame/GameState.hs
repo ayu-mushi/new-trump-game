@@ -2,7 +2,8 @@ module NewTrumpGame.GameState
   (initGame) where
 import Data.Monoid (mconcat)
 import qualified Haste.Perch as P
-import Control.Lens
+import Lens.Family2
+import Lens.Family2.Unchecked
 
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
