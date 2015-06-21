@@ -10,6 +10,7 @@ class Player a where
   hand :: Lens' a [Card]
   deck :: Lens' a [Card]
   initialDraw :: [Card] -> a
+  playerId :: a -> String
 
 data ComputerPlayer = ComputerPlayer {
   cpHand :: [Card],
@@ -20,6 +21,7 @@ instance Player ComputerPlayer where
   hand = lens cpHand $ \p x -> p { cpHand = x }
   deck = lens cpDeck $ \p x -> p { cpDeck = x }
   initialDraw deck = ComputerPlayer (take 3 deck) (drop 3 deck)
+  playerId _ = "computers"
 
 data HumanPlayer = HumanPlayer {
   humanHand :: ([Card], [Card]),
@@ -31,6 +33,7 @@ instance Player HumanPlayer where
   hand = lens (uncurry ((++) . reverse). humanHand) $ \p x -> p { humanHand = ([], x) }
   deck = lens humanDeck $ \p x -> p { humanDeck = x }
   initialDraw deck = HumanPlayer ([], (take 3 deck)) (drop 3 deck) False
+  playerId _ = "yours"
 
 focus :: Lens' ([a], [a]) a
 focus = lens (\(_, (x:_)) -> x) $ \(a, (_:c)) x -> (a, x:c)
