@@ -29,18 +29,15 @@ prevElem el = do
     isNull = ffi $ toJSString "(function(x) {return x === null})"
     isElementNode = ffi $ toJSString "(function(node) {return node.nodeType === 1})"
 
-indexEl :: Enum a => a -> Elem -> IO a
-indexEl z = (indexEl' `flip` z)
-  where
-    indexEl' :: Enum a => Elem -> a -> IO a
-    indexEl' tag i = do
-      tag' <- prevElem tag
-      case tag' of
-        Nothing -> return i
-        Just el -> indexEl' el $ succ i
+indexEl :: (a -> a) -> a -> Elem -> IO a
+indexEl s z tag = do
+  tag' <- prevElem tag
+  case tag' of
+    Nothing -> return z
+    Just el -> indexEl s (s z) tag
 
-indexOfParentEl :: Enum a => a -> Elem -> IO a
-indexOfParentEl z = (>>=indexEl z) . P.parent
+indexOfParentEl :: (a -> a) -> a -> Elem -> IO a
+indexOfParentEl s z = (>>=indexEl s z) . P.parent
 
 forTargetWhenEvt :: Elem -> Event IO a -> (Elem -> IO ()) -> IO ()
 forTargetWhenEvt el event action = void $ jsAddEventListener el (evtName event) action
@@ -48,22 +45,22 @@ forTargetWhenEvt el event action = void $ jsAddEventListener el (evtName event) 
     jsAddEventListener :: Elem -> String -> (Elem -> IO ()) -> IO ()
     jsAddEventListener = ffi $ toJSString "(function(node, evtName, f){ node.addEventListener(evtName, (function(e){ f(e.target) }))})"
 
-forIndexOfClickedLiElem :: Enum a => a -> (a -> IO ()) -> Elem -> IO ()
-forIndexOfClickedLiElem z f el = forTargetWhenEvt el OnClick $ 
+forIndexOfClickedLiElem :: (a -> a) -> a -> (a -> IO ()) -> Elem -> IO ()
+forIndexOfClickedLiElem s z f el = forTargetWhenEvt el OnClick $ 
   \el -> do
     tn <- tagName el
     if tn == "LI"
-      then indexEl z el >>= f
+      then indexEl s z el >>= f
       else return ()
 
-forIndexOfClickedTdElem :: (Enum a, Enum b) => a -> b -> (a -> b -> IO ()) -> Elem -> IO ()
-forIndexOfClickedTdElem az bz f el = forTargetWhenEvt el OnClick $
+forIndexOfClickedTdElem :: (a -> a) -> (b -> b) -> a -> b -> (a -> b -> IO ()) -> Elem -> IO ()
+forIndexOfClickedTdElem as bs az bz f el = forTargetWhenEvt el OnClick $
   \el -> do
     tn <- tagName el
     if tn == "TD"
       then do
-        x <- indexOfParentEl az el
-        y <- indexEl bz el
+        x <- indexOfParentEl as az el
+        y <- indexEl bs bz el
         f x y
       else
         return ()
