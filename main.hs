@@ -53,8 +53,8 @@ forIndexOfClickedLiElem s z f el = forTargetWhenEvt el OnClick $
       then indexEl s z el >>= f
       else return ()
 
-forIndexOfClickedTdElem :: (a -> a) -> (b -> b) -> a -> b -> (a -> b -> IO ()) -> Elem -> IO ()
-forIndexOfClickedTdElem as bs az bz f el = forTargetWhenEvt el OnClick $
+forIndexOfClickedTdElem :: (a -> a) -> a -> (b -> b) -> b -> (a -> b -> IO ()) -> Elem -> IO ()
+forIndexOfClickedTdElem as az bs bz f el = forTargetWhenEvt el OnClick $
   \el -> do
     tn <- tagName el
     if tn == "TD"
