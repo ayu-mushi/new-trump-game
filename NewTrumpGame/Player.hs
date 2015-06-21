@@ -23,26 +23,27 @@ instance Player ComputerPlayer where
 
 data HumanPlayer = HumanPlayer {
   humanHand :: ([Card], [Card]),
-  humanDeck :: [Card]
+  humanDeck :: [Card],
+  isSelected :: Bool
   }
 
 instance Player HumanPlayer where
   hand = lens (uncurry ((++) . reverse). humanHand) $ \p x -> p { humanHand = ([], x) }
   deck = lens humanDeck $ \p x -> p { humanDeck = x }
-  initialDraw deck = HumanPlayer ([], (take 3 deck)) $ drop 3 deck
+  initialDraw deck = HumanPlayer ([], (take 3 deck)) (drop 3 deck) False
 
 focus :: Lens' ([a], [a]) a
 focus = lens (\(_, (x:_)) -> x) $ \(a, (_:c)) x -> (a, x:c)
 
 selectedHand :: Lens' HumanPlayer Card
-selectedHand = lens (\x -> humanHand x) (\(HumanPlayer _ deck) x -> HumanPlayer x deck) . focus
+selectedHand = lens humanHand (\(HumanPlayer _ deck isSelected) x -> HumanPlayer x deck isSelected) . focus
 
 selectBeginHand :: HumanPlayer -> HumanPlayer
-selectBeginHand (HumanPlayer hand deck) = HumanPlayer (start hand) deck
+selectBeginHand (HumanPlayer hand deck isSelected) = HumanPlayer (start hand) deck isSelected
   where start (ls, rs) = ([], reverse ls ++ rs)
 
 selectNextHand :: HumanPlayer -> HumanPlayer
-selectNextHand (HumanPlayer hand deck) = HumanPlayer (next hand) deck
+selectNextHand (HumanPlayer hand deck isSelected) = HumanPlayer (next hand) deck isSelected
   where
     next (ls, (a:rs)) = (a:ls, rs)
     next z = z
