@@ -34,7 +34,7 @@ indexEl s z tag = do
   tag' <- prevElem tag
   case tag' of
     Nothing -> return z
-    Just el -> indexEl s (s z) tag
+    Just el -> indexEl s (s z) el
 
 indexOfParentEl :: (a -> a) -> a -> Elem -> IO a
 indexOfParentEl s z = (>>=indexEl s z) . P.parent
