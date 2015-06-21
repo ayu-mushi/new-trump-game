@@ -1,5 +1,5 @@
 module NewTrumpGame.Player
-  (Player(..), ComputerPlayer, HumanPlayer, selectedHand) where
+  (Player(..), ComputerPlayer, HumanPlayer, selectedHand, selectNextHand, selectBeginHand) where
 
 import Control.Lens
 import NewTrumpGame.Cards
@@ -34,3 +34,13 @@ focus = lens (\(_, (x:_)) -> x) $ \(a, (_:c)) x -> (a, x:c)
 
 selectedHand :: Lens' HumanPlayer Card
 selectedHand = lens (\x -> humanHand x) (\(HumanPlayer _ deck) x -> HumanPlayer x deck) . focus
+
+selectBeginHand :: HumanPlayer -> HumanPlayer
+selectBeginHand (HumanPlayer hand deck) = HumanPlayer (start hand) deck
+  where start (ls, rs) = ([], reverse ls ++ rs)
+
+selectNextHand :: HumanPlayer -> HumanPlayer
+selectNextHand (HumanPlayer hand deck) = HumanPlayer (next hand) deck
+  where
+    next (ls, (a:rs)) = (a:ls, rs)
+    next z = z
