@@ -5,8 +5,6 @@ import qualified Haste.Perch as P
 import Data.Monoid (mconcat)
 import Control.Monad (void)
 
-import Control.Lens
-
 import NewTrumpGame.GameState
 import NewTrumpGame.Cards
 
