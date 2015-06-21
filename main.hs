@@ -29,18 +29,18 @@ prevElem el = do
     isNull = ffi $ toJSString "(function(x) {return x === null})"
     isElementNode = ffi $ toJSString "(function(node) {return node.nodeType === 1})"
 
-indexEl :: Elem -> IO Int
-indexEl = (indexEl' `flip` 0)
+indexEl :: Enum a => a -> Elem -> IO a
+indexEl z = (indexEl' `flip` z)
   where
-    indexEl' :: Elem -> Int -> IO Int
+    indexEl' :: Enum a => Elem -> a -> IO a
     indexEl' tag i = do
       tag' <- prevElem tag
       case tag' of
         Nothing -> return i
         Just el -> indexEl' el $ succ i
 
-indexOfParentEl :: Elem -> IO Int
-indexOfParentEl = (>>=indexEl) . P.parent
+indexOfParentEl :: Enum a => a -> Elem -> IO a
+indexOfParentEl z = (>>=indexEl z) . P.parent
 
 forTargetWhenEvt :: Elem -> Event IO a -> (Elem -> IO ()) -> IO ()
 forTargetWhenEvt el event action = void $ jsAddEventListener el (evtName event) action
@@ -48,22 +48,22 @@ forTargetWhenEvt el event action = void $ jsAddEventListener el (evtName event) 
     jsAddEventListener :: Elem -> String -> (Elem -> IO ()) -> IO ()
     jsAddEventListener = ffi $ toJSString "(function(node, evtName, f){ node.addEventListener(evtName, (function(e){ f(e.target) }))})"
 
-forIndexOfClickedLiElem :: (Int -> IO ()) -> Elem -> IO ()
-forIndexOfClickedLiElem f el = forTargetWhenEvt el OnClick $ 
+forIndexOfClickedLiElem :: Enum a => a -> (a -> IO ()) -> Elem -> IO ()
+forIndexOfClickedLiElem z f el = forTargetWhenEvt el OnClick $ 
   \el -> do
     tn <- tagName el
     if tn == "LI"
-      then indexEl el >>= f
+      then indexEl z el >>= f
       else return ()
 
-forIndexOfClickedTdElem :: (Int -> Int -> IO ()) -> Elem -> IO ()
-forIndexOfClickedTdElem f el = forTargetWhenEvt el OnClick $
+forIndexOfClickedTdElem :: (Enum a, Enum b) => a -> b -> (a -> b -> IO ()) -> Elem -> IO ()
+forIndexOfClickedTdElem az bz f el = forTargetWhenEvt el OnClick $
   \el -> do
     tn <- tagName el
     if tn == "TD"
       then do
-        x <- indexOfParentEl el
-        y <- indexEl el
+        x <- indexOfParentEl az el
+        y <- indexEl bz el
         f x y
       else
         return ()
