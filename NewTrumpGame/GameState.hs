@@ -30,11 +30,13 @@ instance P.ToElem Game where
   toElem game = do
     P.toElem $ game ^. field
     let (turnPlayer, (a, b)) = game ^. players
-    refreshPlayerHtml a "yours"
-    refreshPlayerHtml b "computers"
     P.forElems "#turnplayer" $ do
       P.clear
       P.toElem $ "-- " ++ (if turnPlayer then "あなた" else "コンピュータ") ++ "の番です"
+    P.toElem a
+    P.toElem b
+    {-
+    refreshPlayerHtml b "computers"
     where
       refreshPlayerHtml x name = do
         P.forElems ("#"++name++" .deck") $ do
@@ -43,6 +45,7 @@ instance P.ToElem Game where
         P.forElems ("#"++name++" .hand") $ do
           P.clear
           mconcat $ map (P.li . (if name == "computers" then const "?" else show)) $ x ^. hand
+     -}
 
 initGame :: IO Game
 initGame = do

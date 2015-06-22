@@ -27,10 +27,10 @@ instance Player ComputerPlayer where
 
 instance P.ToElem ComputerPlayer where
   toElem p = do
-    P.forElems ("#"++(playerId p)++".deck") $ do
+    P.forElems ("#"++(playerId p)++" .deck") $ do
       P.clear
       P.toElem $ "コンピュータの残り山札: " ++ (show $ length $ p ^. deck)
-    P.forElems ("#"++(playerId p)++".hand") $ do
+    P.forElems ("#"++(playerId p)++" .hand") $ do
       P.clear
       mconcat $ map (P.li . show) $ p ^. hand
 
@@ -48,10 +48,10 @@ instance Player HumanPlayer where
 
 instance P.ToElem HumanPlayer where
   toElem p = do
-    P.forElems ("#"++(playerId p)++".deck") $ do
+    P.forElems ("#"++(playerId p)++" .deck") $ do
       P.clear
       P.toElem $ "あなたの残り山札: " ++ (show $ length $ p ^. deck)
-    P.forElems ("#"++(playerId p)++".hand") $ do
+    P.forElems ("#"++(playerId p)++" .hand") $ do
       P.clear
       let (ls, a:rs) = humanHand p
       mconcat $ map (P.li . show) ls
