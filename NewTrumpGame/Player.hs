@@ -25,6 +25,15 @@ instance Player ComputerPlayer where
   initialDraw deck = ComputerPlayer (take 3 deck) (drop 3 deck)
   playerId _ = "computers"
 
+instance P.ToElem ComputerPlayer where
+  toElem p = do
+    P.forElems ("#"++(playerId p)++".deck") $ do
+      P.clear
+      P.toElem $ "コンピュータの残り山札: " ++ (show $ length $ p ^. deck)
+    P.forElems ("#"++(playerId p)++".hand") $ do
+      P.clear
+      mconcat $ map (P.li . show) $ p ^. hand
+
 data HumanPlayer = HumanPlayer {
   humanHand :: ([Card], [Card]),
   humanDeck :: [Card],
