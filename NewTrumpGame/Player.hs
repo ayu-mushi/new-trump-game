@@ -1,5 +1,5 @@
 module NewTrumpGame.Player
-  (Player(..), ComputerPlayer, HumanPlayer, selectNextHand, selectBeginHand) where
+  (Player(..), ComputerPlayer, HumanPlayer, handZipper, selectNextHand, selectBeginHand) where
 
 import Lens.Family2
 import Lens.Family2.Unchecked
@@ -39,6 +39,9 @@ data HumanPlayer = HumanPlayer {
   humanDeck :: [Card],
   isSelected :: Bool
   }
+
+handZipper :: Lens' HumanPlayer ([Card], [Card])
+handZipper = lens humanHand $ \p x -> p { humanHand = x }
 
 instance Player HumanPlayer where
   hand = lens (uncurry ((++) . reverse). humanHand) $ \p x -> p { humanHand = ([], x) }
