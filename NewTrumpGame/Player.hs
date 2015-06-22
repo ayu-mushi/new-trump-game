@@ -68,11 +68,11 @@ selectedHand :: Lens' HumanPlayer Card
 selectedHand = handZipper . focus
 
 selectBeginHand :: HumanPlayer -> HumanPlayer
-selectBeginHand (HumanPlayer hand deck isSelected) = HumanPlayer (start hand) deck isSelected
+selectBeginHand = handZipper %~ start
   where start (ls, rs) = ([], reverse ls ++ rs)
 
 selectNextHand :: HumanPlayer -> HumanPlayer
-selectNextHand (HumanPlayer hand deck isSelected) = HumanPlayer (next hand) deck isSelected
+selectNextHand = handZipper %~ next
   where
     next (ls, (a:rs)) = (a:ls, rs)
     next z = z
