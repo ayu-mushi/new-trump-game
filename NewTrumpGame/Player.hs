@@ -3,6 +3,8 @@ module NewTrumpGame.Player
 
 import Lens.Family2
 import Lens.Family2.Unchecked
+import qualified Haste.Perch as P
+import Data.Monoid (mconcat)
 
 import NewTrumpGame.Cards
 
@@ -34,6 +36,18 @@ instance Player HumanPlayer where
   deck = lens humanDeck $ \p x -> p { humanDeck = x }
   initialDraw deck = HumanPlayer ([], (take 3 deck)) (drop 3 deck) False
   playerId _ = "yours"
+
+instance P.ToElem HumanPlayer where
+  toElem p = do
+    P.forElems ("#"++(playerId p)++".deck") $ do
+      P.clear
+      P.toElem $ "あなたの残り山札: " ++ (show $ length $ p ^. deck)
+    P.forElems ("#"++(playerId p)++".hand") $ do
+      P.clear
+      let (ls, a:rs) = humanHand p
+      mconcat $ map (P.li . show) ls
+      (if isSelected p then P.attr `flip` (P.atr "id" "selected") else id) $ P.li $ show a
+      mconcat $ map (P.li . show) rs
 
 focus :: Lens' ([a], [a]) a
 focus = lens (\(_, (x:_)) -> x) $ \(a, (_:c)) x -> (a, x:c)
