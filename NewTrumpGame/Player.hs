@@ -1,5 +1,5 @@
 module NewTrumpGame.Player
-  (Player(..), ComputerPlayer, HumanPlayer, selectedHand, selectNextHand, selectBeginHand) where
+  (Player(..), ComputerPlayer, HumanPlayer, selectNextHand, selectBeginHand) where
 
 import Lens.Family2
 import Lens.Family2.Unchecked
