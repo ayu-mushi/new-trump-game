@@ -35,17 +35,6 @@ instance P.ToElem Game where
       P.toElem $ "-- " ++ (if turnPlayer then "あなた" else "コンピュータ") ++ "の番です"
     P.toElem a
     P.toElem b
-    {-
-    refreshPlayerHtml b "computers"
-    where
-      refreshPlayerHtml x name = do
-        P.forElems ("#"++name++" .deck") $ do
-          P.clear
-          P.toElem $ (if name == "computers" then "コンピュータ" else "あなた") ++ "の残り山札: " ++ (show $ length $ x ^. deck)
-        P.forElems ("#"++name++" .hand") $ do
-          P.clear
-          mconcat $ map (P.li . (if name == "computers" then const "?" else show)) $ x ^. hand
-     -}
 
 initGame :: IO Game
 initGame = do
