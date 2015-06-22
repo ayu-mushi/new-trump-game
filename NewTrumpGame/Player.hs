@@ -65,7 +65,7 @@ focus :: Lens' ([a], [a]) a
 focus = lens (\(_, (x:_)) -> x) $ \(a, (_:c)) x -> (a, x:c)
 
 selectedHand :: Lens' HumanPlayer Card
-selectedHand = lens humanHand (\(HumanPlayer _ deck isSelected) x -> HumanPlayer x deck isSelected) . focus
+selectedHand = handZipper . focus
 
 selectBeginHand :: HumanPlayer -> HumanPlayer
 selectBeginHand (HumanPlayer hand deck isSelected) = HumanPlayer (start hand) deck isSelected
