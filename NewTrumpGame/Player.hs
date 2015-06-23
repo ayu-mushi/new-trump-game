@@ -56,7 +56,7 @@ instance P.ToElem HumanPlayer where
       P.toElem $ "あなたの残り山札: " ++ (show $ length $ p ^. deck)
     P.forElems ("#"++(playerId p)++" .hand") $ do
       P.clear
-      let (ls, a:rs) = humanHand p
+      let (ls, a:rs) = p ^. handZipper
       mconcat $ map (P.li . show) ls
       (if isSelected p then P.attr `flip` (P.atr "id" "selected") else id) $ P.li $ show a
       mconcat $ map (P.li . show) rs
