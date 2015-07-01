@@ -59,7 +59,7 @@ instance P.ToElem HumanPlayer where
     P.forElems ("#"++(playerId p)++" .hand") $ do
       P.clear
       let (ls, a:rs) = p ^. handZipper
-      mconcat $ map (P.li . show) ls
+      mconcat $ map (P.li . show) $ reverse ls
       (if p ^. isSelected then P.attr `flip` (P.atr "id" "selected") else id) $ P.li $ show a
       mconcat $ map (P.li . show) rs
 
