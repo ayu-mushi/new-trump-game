@@ -1,6 +1,7 @@
 module Main (main) where
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
 import Haste.Foreign (ffi)
+import Haste.Concurrent (newMVar)
 import qualified Haste.Perch as P
 import Data.Monoid (mconcat)
 import Control.Monad (void)
@@ -66,6 +67,7 @@ forIndexOfClickedTdElem as az bs bz f el = forTargetWhenEvt el OnClick $
 main :: IO ()
 main = do
   game <- initGame
+  reftoGame <- newMVar game
   body <- P.getBody
   P.build (P.toElem game) body
   return ()
