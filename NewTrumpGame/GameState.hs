@@ -1,5 +1,5 @@
 module NewTrumpGame.GameState
-  (initGame) where
+  (initGame, Game, players) where
 import Data.Monoid (mconcat)
 import qualified Haste.Perch as P
 import Lens.Family2
