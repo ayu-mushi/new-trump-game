@@ -1,12 +1,16 @@
 module Main (main) where
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
+import Haste.DOM (elemsByQS)
 import Haste.Foreign (ffi)
-import Haste.Concurrent (newMVar)
+import Haste.Concurrent
 import qualified Haste.Perch as P
 import Data.Monoid (mconcat)
 import Control.Monad (void)
+import Lens.Family2
+import Lens.Family2.Stock
 
 import NewTrumpGame.GameState
+import NewTrumpGame.Player (selectNextHand, selectBeginHand)
 import NewTrumpGame.Cards
 
 tagName :: Elem -> IO String
@@ -63,6 +67,14 @@ forIndexOfClickedTdElem as az bs bz f el = forTargetWhenEvt el OnClick $
         f x y
       else
         return ()
+
+selectablizeHand :: MVar Game -> IO ()
+selectablizeHand reftoGame = void $ do
+  body <- P.getBody
+  handLis <- elemsByQS body "#yours .hand"
+  (forIndexOfClickedLiElem (selectNextHand.) selectBeginHand) `flip` (head handLis) $
+    \zip -> concurrent $ modifyMVarIO reftoGame $ \x -> return (x & ((players . _1) %~ zip), ())
+  concurrent $ void $ withMVarIO reftoGame $ void . (P.build`flip`body) . P.toElem
 
 main :: IO ()
 main = do
