@@ -74,7 +74,7 @@ selectablizeHand reftoGame = void $ do
   handLis <- elemsByQS body "#yours .hand"
   (forIndexOfClickedLiElem (selectNextHand.) selectBeginHand) `flip` (head handLis) $
     \zip -> do
-      modifyMVar reftoGame $ \x -> return (x & ((players . _1) %~ zip) & ((players . _1 . isSelected %~ not)), ())
+      modifyMVar reftoGame $ \x -> return (x & ((players . _1) %~ zip) & ((players . _1 . isSelected %~ (const True))), ())
       withMVar reftoGame $ void . (P.build`flip`body) . P.toElem
 
 main :: IO ()
