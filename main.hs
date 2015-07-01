@@ -2,7 +2,7 @@ module Main (main) where
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
 import Haste.DOM (elemsByQS)
 import Haste.Foreign (ffi)
-import Haste.Concurrent
+import Control.Concurrent
 import qualified Haste.Perch as P
 import Data.Monoid (mconcat)
 import Control.Monad (void)
@@ -73,9 +73,9 @@ selectablizeHand reftoGame = void $ do
   body <- P.getBody
   handLis <- elemsByQS body "#yours .hand"
   (forIndexOfClickedLiElem (selectNextHand.) selectBeginHand) `flip` (head handLis) $
-    \zip -> concurrent $ do
-      modifyMVarIO reftoGame $ \x -> return (x & ((players . _1) %~ zip) & ((players . _1 . isSelected %~ not)), ())
-      withMVarIO reftoGame $ void . (P.build`flip`body) . P.toElem
+    \zip -> do
+      modifyMVar reftoGame $ \x -> return (x & ((players . _1) %~ zip) & ((players . _1 . isSelected %~ not)), ())
+      withMVar reftoGame $ void . (P.build`flip`body) . P.toElem
 
 main :: IO ()
 main = do
