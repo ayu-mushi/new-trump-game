@@ -10,7 +10,7 @@ import Lens.Family2
 import Lens.Family2.Stock
 
 import NewTrumpGame.GameState
-import NewTrumpGame.Player (selectNextHand, selectBeginHand)
+import NewTrumpGame.Player (selectNextHand, selectBeginHand, isSelected)
 import NewTrumpGame.Cards
 
 tagName :: Elem -> IO String
@@ -73,13 +73,14 @@ selectablizeHand reftoGame = void $ do
   body <- P.getBody
   handLis <- elemsByQS body "#yours .hand"
   (forIndexOfClickedLiElem (selectNextHand.) selectBeginHand) `flip` (head handLis) $
-    \zip -> concurrent $ modifyMVarIO reftoGame $ \x -> return (x & ((players . _1) %~ zip), ())
+    \zip -> concurrent $ modifyMVarIO reftoGame $ \x -> return (x & ((players . _1) %~ zip) & ((players . _1 . isSelected %~ not)), ())
   concurrent $ void $ withMVarIO reftoGame $ void . (P.build`flip`body) . P.toElem
 
 main :: IO ()
 main = do
   game <- initGame
   reftoGame <- newMVar game
+  selectablizeHand reftoGame
   body <- P.getBody
   P.build (P.toElem game) body
   return ()

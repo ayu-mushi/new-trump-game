@@ -1,5 +1,5 @@
 module NewTrumpGame.Player
-  (Player(..), ComputerPlayer, HumanPlayer, handZipper, selectNextHand, selectBeginHand) where
+  (Player(..), ComputerPlayer, HumanPlayer, handZipper, selectNextHand, selectBeginHand, isSelected) where
 
 import Lens.Family2
 import Lens.Family2.Unchecked
@@ -37,11 +37,13 @@ instance P.ToElem ComputerPlayer where
 data HumanPlayer = HumanPlayer {
   humanHand :: ([Card], [Card]),
   humanDeck :: [Card],
-  isSelected :: Bool
+  _isSelected :: Bool
   }
 
 handZipper :: Lens' HumanPlayer ([Card], [Card])
 handZipper = lens humanHand $ \p x -> p { humanHand = x }
+isSelected :: Lens' HumanPlayer Bool
+isSelected = lens _isSelected $ \p x -> p { _isSelected = x }
 
 instance Player HumanPlayer where
   hand = lens (uncurry ((++) . reverse). humanHand) $ \p x -> p { humanHand = ([], x) }
@@ -58,7 +60,7 @@ instance P.ToElem HumanPlayer where
       P.clear
       let (ls, a:rs) = p ^. handZipper
       mconcat $ map (P.li . show) ls
-      (if isSelected p then P.attr `flip` (P.atr "id" "selected") else id) $ P.li $ show a
+      (if p ^. isSelected then P.attr `flip` (P.atr "id" "selected") else id) $ P.li $ show a
       mconcat $ map (P.li . show) rs
 
 focus :: Lens' ([a], [a]) a
