@@ -73,8 +73,9 @@ selectablizeHand reftoGame = void $ do
   body <- P.getBody
   handLis <- elemsByQS body "#yours .hand"
   (forIndexOfClickedLiElem (selectNextHand.) selectBeginHand) `flip` (head handLis) $
-    \zip -> concurrent $ modifyMVarIO reftoGame $ \x -> return (x & ((players . _1) %~ zip) & ((players . _1 . isSelected %~ not)), ())
-  concurrent $ void $ withMVarIO reftoGame $ void . (P.build`flip`body) . P.toElem
+    \zip -> concurrent $ do
+      modifyMVarIO reftoGame $ \x -> return (x & ((players . _1) %~ zip) & ((players . _1 . isSelected %~ not)), ())
+      withMVarIO reftoGame $ void . (P.build`flip`body) . P.toElem
 
 main :: IO ()
 main = do
