@@ -20,19 +20,21 @@ instance P.ToElem Field where
         Just card -> show card
 
 data Game = Game {
-  _players :: (Bool, (HumanPlayer, ComputerPlayer)),
+  _players :: (HumanPlayer, ComputerPlayer),
+  _turnPlayer :: Bool,
   _field :: Field
   }
-players :: Lens' Game (Bool, (HumanPlayer, ComputerPlayer)); players = lens _players (\p x -> p { _players = x })
+players :: Lens' Game (HumanPlayer, ComputerPlayer); players = lens _players (\p x -> p { _players = x })
+turnPlayer :: Lens' Game Bool; turnPlayer = lens _turnPlayer $ \p x -> p { _turnPlayer = x }
 field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
 
 instance P.ToElem Game where
   toElem game = do
     P.toElem $ game ^. field
-    let (turnPlayer, (a, b)) = game ^. players
+    let (a, b) = game ^. players
     P.forElems "#turnplayer" $ do
       P.clear
-      P.toElem $ "-- " ++ (if turnPlayer then "あなた" else "コンピュータ") ++ "の番です"
+      P.toElem $ "-- " ++ (if game ^. turnPlayer then "あなた" else "コンピュータ") ++ "の番です"
     P.toElem a
     P.toElem b
 
@@ -42,4 +44,4 @@ initGame = do
   deck1 <- initDeck
 
   return $
-    Game { _players = (True, (initialDraw deck0, initialDraw deck1)),_field = Field $ replicate 5 (replicate 3 Nothing)}
+    Game { _players = (initialDraw deck0, initialDraw deck1), _turnPlayer = True, _field = Field $ replicate 5 (replicate 3 Nothing)}
