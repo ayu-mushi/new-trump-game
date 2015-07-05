@@ -75,7 +75,7 @@ selectablizeHand reftoGame = void $ do
   (forIndexOfClickedLiElem (selectNextHand.) selectBeginHand) `flip` (head handLis) $
     \zip -> do
       modifyMVar_ reftoGame $ \x -> return $ x & ((players . _1) %~ zip) & ((players . _1 . isSelected .~ True))
-      withMVar reftoGame $ void . (P.build`flip`body) . P.toElem
+      withMVar reftoGame $ void . (`P.build`body) . P.toElem
 
 main :: IO ()
 main = do
