@@ -13,6 +13,7 @@ class Player a where
   deck :: Lens' a [Card]
   initialDraw :: [Card] -> a
   playerId :: a -> String
+  playerName :: a -> String
 
 data ComputerPlayer = ComputerPlayer {
   cpHand :: [Card],
@@ -24,6 +25,7 @@ instance Player ComputerPlayer where
   deck = lens cpDeck $ \p x -> p { cpDeck = x }
   initialDraw deck = ComputerPlayer (take 3 deck) (drop 3 deck)
   playerId _ = "computers"
+  playerName _ = "コンピュータ"
 
 instance P.ToElem ComputerPlayer where
   toElem p = do
@@ -50,6 +52,7 @@ instance Player HumanPlayer where
   deck = lens humanDeck $ \p x -> p { humanDeck = x }
   initialDraw deck = HumanPlayer ([], (take 3 deck)) (drop 3 deck) False
   playerId _ = "yours"
+  playerName _ = "あなた"
 
 instance P.ToElem HumanPlayer where
   toElem p = do
