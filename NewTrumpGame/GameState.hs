@@ -19,7 +19,7 @@ instance P.ToElem Field where
         Nothing -> ""
         Just card -> show card
 
-data Phase = Draw | Hand | Sacrifice | Summon | End
+data Phase = Draw | Hand | Sacrifice | Summon | End deriving (Eq)
 
 instance Show Phase where
   show p = case p of
