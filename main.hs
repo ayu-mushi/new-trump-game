@@ -81,7 +81,6 @@ main :: IO ()
 main = do
   game <- initGame
   reftoGame <- newMVar game
-  selectablizeHand reftoGame
   body <- P.getBody
   P.build (P.toElem game) body
   return ()
