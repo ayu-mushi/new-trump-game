@@ -19,6 +19,8 @@ instance P.ToElem Field where
         Nothing -> ""
         Just card -> show card
 
+data Phase = Draw | Hand | Sacrifice | Summon
+
 data Game = Game {
   _players :: (HumanPlayer, ComputerPlayer),
   _turnPlayer :: Bool,
