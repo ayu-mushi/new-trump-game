@@ -43,10 +43,10 @@ field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
 instance P.ToElem Game where
   toElem game = do
     P.toElem $ game ^. field
-    let (a, b) = game ^. players
     P.forElems "#turnplayer" $ do
       P.clear
       P.toElem $ "-- " ++ (if game ^. turnPlayer then "あなた" else "コンピュータ") ++ "の番です、" ++ (show $ game ^. phase)
+    let (a, b) = game ^. players
     P.toElem a
     P.toElem b
 
