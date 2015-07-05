@@ -34,7 +34,7 @@ instance P.ToElem ComputerPlayer where
       P.toElem $ "コンピュータの残り山札: " ++ (show $ length $ p ^. deck)
     P.forElems ("#"++(playerId p)++" .hand") $ do
       P.clear
-      mconcat $ map (P.li . const "?") $ p ^. hand
+      mconcat $ replicate (length $ p ^. hand) $ P.li "?"
 
 data HumanPlayer = HumanPlayer {
   humanHand :: ([Card], [Card]),
