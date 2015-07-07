@@ -27,6 +27,10 @@ zipFirst :: ZipicAccessor a -> ZipicAccessor a
 zipFirst za xs = ([], (reverse ls) ++ rs)
   where (ls, rs) = za xs
 
+specialIfSelected :: ZipicAccessor a -> [a] -> (a -> b) -> (a -> b) -> [b]
+specialIfSelected za xs general special = (reverse $ map general ls) ++ ((special a):(map general rs))
+  where (ls, (a:rs)) = za xs
+
 type ZipicAccessorsMul a = [a] -> [[a]]
 
 data Phase = Draw | Hand | Sacrifice (Maybe (ZipicAccessor Card)) | Summon (Maybe (ZipicAccessor Card)) (ZipicAccessorsMul Card) | End
