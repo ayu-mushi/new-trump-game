@@ -10,7 +10,7 @@ import Lens.Family2
 import Lens.Family2.Stock
 
 import NewTrumpGame.GameState
-import NewTrumpGame.Player (selectNextHand, selectBeginHand, isSelected)
+import NewTrumpGame.Player
 import NewTrumpGame.Cards
 
 tagName :: Elem -> IO String
@@ -67,15 +67,6 @@ forIndexOfClickedTdElem as az bs bz f el = forTargetWhenEvt el OnClick $
         f x y
       else
         return ()
-
-selectablizeHand :: MVar Game -> IO ()
-selectablizeHand reftoGame = void $ do
-  body <- P.getBody
-  handLis <- elemsByQS body "#yours .hand"
-  (forIndexOfClickedLiElem (selectNextHand.) selectBeginHand) `flip` (head handLis) $
-    \zip -> do
-      modifyMVar_ reftoGame $ return . (players . _1 . isSelected .~ True) . ((players . _1) %~ zip)
-      withMVar reftoGame $ void . (`P.build`body) . P.toElem
 
 main :: IO ()
 main = do

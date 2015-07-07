@@ -19,23 +19,23 @@ instance P.ToElem Field where
         Nothing -> ""
         Just card -> show card
 
-data Phase = Draw | Hand | Sacrifice | Summon | End deriving (Eq)
+data Phase = Draw | Hand | Sacrifice (Maybe ([Card] -> Card)) | Summon (Maybe ([Card] -> Card)) | End
 
 instance Show Phase where
   show p = case p of
-    Draw      -> "ドロー"
-    Hand      -> "手札を選択"
-    Sacrifice -> "生贄を選択"
-    Summon    -> "召喚する位置を選択"
-    End       -> "手番を交代"
+    Draw        -> "ドロー"
+    Hand        -> "手札を選択"
+    Sacrifice _ -> "生贄を選択"
+    Summon    _ -> "召喚する位置を選択"
+    End         -> "手番を交代"
 
 data Game = Game {
-  _players :: (HumanPlayer, ComputerPlayer),
+  _players :: (Player, Player), -- (players ^. _1 . playerName) == "あなた"
   _turnPlayer :: Bool,
   _phase :: Phase,
   _field :: Field
   }
-players :: Lens' Game (HumanPlayer, ComputerPlayer); players = lens _players (\p x -> p { _players = x })
+players :: Lens' Game (Player, Player); players = lens _players (\p x -> p { _players = x })
 turnPlayer :: Lens' Game Bool; turnPlayer = lens _turnPlayer $ \p x -> p { _turnPlayer = x }
 phase :: Lens' Game Phase; phase = lens _phase $ \p x -> p { _phase = x }
 field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
@@ -56,4 +56,4 @@ initGame = do
   deck1 <- initDeck
 
   return $
-    Game { _players = (initialDraw deck0, initialDraw deck1), _turnPlayer = True, _phase = Draw, _field = Field $ replicate 5 (replicate 3 Nothing)}
+    Game { _players = (initialDraw "あなた" "yours" show deck0, initialDraw "コンピュータ" "computers" (const "?") deck1), _turnPlayer = True, _phase = Draw, _field = Field $ replicate 5 (replicate 3 Nothing)}

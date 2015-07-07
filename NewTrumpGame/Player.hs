@@ -1,83 +1,33 @@
 module NewTrumpGame.Player
-  (Player(..), ComputerPlayer, HumanPlayer, handZipper, selectNextHand, selectBeginHand, isSelected) where
+  (Player, initialDraw) where
 
 import Lens.Family2
 import Lens.Family2.Unchecked
 import qualified Haste.Perch as P
 import Data.Monoid (mconcat)
+import NewTrumpGame.Cards (Card)
 
-import NewTrumpGame.Cards
+data Player = Player
+  { _hand :: [Card]
+  , _deck :: [Card]
+  , _playerName :: String
+  , _playerId :: String
+  , _representation :: Card -> String }
 
-class Player a where
-  hand :: Lens' a [Card]
-  deck :: Lens' a [Card]
-  initialDraw :: [Card] -> a
-  playerId :: a -> String
-  playerName :: a -> String
-
-data ComputerPlayer = ComputerPlayer {
-  cpHand :: [Card],
-  cpDeck :: [Card]
-  }
-
-instance Player ComputerPlayer where
-  hand = lens cpHand $ \p x -> p { cpHand = x }
-  deck = lens cpDeck $ \p x -> p { cpDeck = x }
-  initialDraw deck = ComputerPlayer (take 3 deck) (drop 3 deck)
-  playerId _ = "computers"
-  playerName _ = "コンピュータ"
-
-instance P.ToElem ComputerPlayer where
+instance P.ToElem Player where
   toElem p = do
-    P.forElems ("#"++(playerId p)++" .deck") $ do
+    P.forElems ("#" ++ (p ^. playerId) ++" .deck") $ do
       P.clear
-      P.toElem $ "コンピュータの残り山札: " ++ (show $ length $ p ^. deck)
-    P.forElems ("#"++(playerId p)++" .hand") $ do
+      P.toElem $ p ^. (playerName) ++ "の残り山札: " ++ (show $ length $ p ^. deck)
+    P.forElems ("#" ++ (p ^. playerId) ++" .hand") $ do
       P.clear
-      mconcat $ replicate (length $ p ^. hand) $ P.li "?"
+      mconcat $ map (P.li . (p ^. representation)) $ p ^. hand
 
-data HumanPlayer = HumanPlayer {
-  humanHand :: ([Card], [Card]),
-  humanDeck :: [Card],
-  _isSelected :: Bool
-  }
+hand :: Lens' Player [Card]; hand = lens _hand $ \p x -> p { _hand = x }
+deck :: Lens' Player [Card]; deck = lens _deck $ \p x -> p { _deck = x }
+playerName :: Lens' Player String; playerName = lens _playerName $ \p x -> p { _playerName = x }
+playerId :: Lens' Player String; playerId = lens _playerId $ \p x -> p { _playerId = x }
+representation :: Lens' Player (Card -> String); representation = lens _representation $ \p x -> p { _representation = x }
 
-handZipper :: Lens' HumanPlayer ([Card], [Card])
-handZipper = lens humanHand $ \p x -> p { humanHand = x }
-isSelected :: Lens' HumanPlayer Bool
-isSelected = lens _isSelected $ \p x -> p { _isSelected = x }
-
-instance Player HumanPlayer where
-  hand = lens (uncurry ((++) . reverse). humanHand) $ \p x -> p { humanHand = ([], x) }
-  deck = lens humanDeck $ \p x -> p { humanDeck = x }
-  initialDraw deck = HumanPlayer ([], (take 3 deck)) (drop 3 deck) False
-  playerId _ = "yours"
-  playerName _ = "あなた"
-
-instance P.ToElem HumanPlayer where
-  toElem p = do
-    P.forElems ("#"++(playerId p)++" .deck") $ do
-      P.clear
-      P.toElem $ "あなたの残り山札: " ++ (show $ length $ p ^. deck)
-    P.forElems ("#"++(playerId p)++" .hand") $ do
-      P.clear
-      let (ls, a:rs) = p ^. handZipper
-      mconcat $ map (P.li . show) $ reverse ls
-      (if p ^. isSelected then P.attr `flip` (P.atr "id" "selected") else id) $ P.li $ show a
-      mconcat $ map (P.li . show) rs
-
-focus :: Lens' ([a], [a]) a
-focus = lens (\(_, (x:_)) -> x) $ \(a, (_:c)) x -> (a, x:c)
-
-selectedHand :: Lens' HumanPlayer Card
-selectedHand = handZipper . focus
-
-selectBeginHand :: HumanPlayer -> HumanPlayer
-selectBeginHand = handZipper %~ start
-  where start (ls, rs) = ([], reverse ls ++ rs)
-
-selectNextHand :: HumanPlayer -> HumanPlayer
-selectNextHand = handZipper %~ next
-  where
-    next (ls, (a:rs)) = (a:ls, rs)
-    next z = z
+initialDraw :: String -> String -> (Card -> String) -> [Card] -> Player
+initialDraw name plid rep d = Player (take 3 d) (drop 3 d) name plid rep
