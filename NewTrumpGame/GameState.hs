@@ -71,7 +71,7 @@ instance P.ToElem Game where
     P.toElem $ game ^. field
     P.forElems "#status" $ do
       P.clear
-      P.toElem $ "-- " ++ (if game ^. turnPlayer then "あなた" else "コンピュータ") ++ "の番です、" ++ (show $ game ^. phase)
+      P.toElem $ "-- " ++ ((getTurnPlayer game) ^. playerName) ++ "の番です、" ++ (show $ game ^. phase)
     let (a, b) = game ^. players
     P.toElem a
     P.toElem b
