@@ -19,14 +19,14 @@ instance P.ToElem Field where
         Nothing -> ""
         Just card -> show card
 
-data Phase = Draw | Hand | Sacrifice (Maybe ([Card] -> Card)) | Summon (Maybe ([Card] -> Card)) | End
+data Phase = Draw | Hand | Sacrifice (Maybe ([Card] -> Card)) | Summon (Maybe ([Card] -> Card)) [[Card] -> Card] | End
 
 instance Show Phase where
   show p = case p of
     Draw        -> "ドロー"
     Hand        -> "手札を選択"
     Sacrifice _ -> "生贄を選択"
-    Summon    _ -> "召喚する位置を選択"
+    Summon  _ _ -> "召喚する位置を選択"
     End         -> "手番を交代"
 
 data Game = Game {
