@@ -21,6 +21,17 @@ instance P.ToElem Field where
 
 type ZipicAccessor a = [a] -> ([a], [a])
 
+zipNext :: ZipicAccessor a -> ZipicAccessor a
+zipNext za xs = ((a:ls), rs)
+  where (ls, (a:rs)) = za xs
+
+zipFirst :: ZipicAccessor a -> ZipicAccessor a
+zipFirst za xs = ([], (reverse ls) ++ rs)
+  where (ls, rs) = za xs
+
+--applyZa :: ZipicAccessor a -> [a] -> [a]
+--applyZa za xs = 
+
 data Phase = Draw | Hand | Sacrifice (Maybe (ZipicAccessor Card)) | Summon (Maybe (ZipicAccessor Card)) [ZipicAccessor Card] | End
 
 instance Show Phase where
