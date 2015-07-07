@@ -33,7 +33,7 @@ specialIfSelected za xs general special = (reverse $ map general ls) ++ ((specia
 
 type ZipicAccessorsMul a = [a] -> [[a]]
 
-data Phase = Draw | Hand | Sacrifice (Maybe (ZipicAccessor Card)) | Summon (Maybe (ZipicAccessor Card)) (ZipicAccessorsMul Card) | End
+data Phase = Draw | Hand | Sacrifice (Maybe (ZipicAccessor Card)) | Summon (Maybe (ZipicAccessor Card)) (Maybe (ZipicAccessorsMul Card)) | End
 
 instance Show Phase where
   show p = case p of
