@@ -25,8 +25,7 @@ zipNext :: ZipicAccessor a -> ZipicAccessor a
 zipNext za xs = ((a:ls), rs)
   where (ls, (a:rs)) = za xs
 zipFirst :: ZipicAccessor a -> ZipicAccessor a
-zipFirst za xs = ([], (reverse ls) ++ rs)
-  where (ls, rs) = za xs
+zipFirst za xs = ([], xs)
 
 specialIfSelected :: ZipicAccessor a -> [a] -> (a -> b) -> (a -> b) -> [b]
 specialIfSelected za xs general special = (reverse $ map general ls) ++ ((special a):(map general rs))
