@@ -4,6 +4,7 @@ import Data.Monoid (mconcat)
 import qualified Haste.Perch as P
 import Lens.Family2
 import Lens.Family2.Unchecked
+import Lens.Family2.Stock (_1, _2)
 
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
@@ -61,6 +62,9 @@ players :: Lens' Game (Player, Player); players = lens _players (\p x -> p { _pl
 turnPlayer :: Lens' Game Bool; turnPlayer = lens _turnPlayer $ \p x -> p { _turnPlayer = x }
 phase :: Lens' Game Phase; phase = lens _phase $ \p x -> p { _phase = x }
 field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
+
+getTurnPlayer :: Game -> Player
+getTurnPlayer game = game ^. players . (if game ^. turnPlayer then _1 else _2)
 
 instance P.ToElem Game where
   toElem game = do
