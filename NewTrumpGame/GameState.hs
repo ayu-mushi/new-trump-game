@@ -21,7 +21,7 @@ instance P.ToElem Field where
 
 type ZipicAccessor a = [a] -> ([a], [a])
 
-data Phase = Draw | Hand | Sacrifice (Maybe ([Card] -> Card)) | Summon (Maybe ([Card] -> Card)) [[Card] -> Card] | End
+data Phase = Draw | Hand | Sacrifice (Maybe (ZipicAccessor Card)) | Summon (Maybe (ZipicAccessor Card)) [ZipicAccessor Card] | End
 
 instance Show Phase where
   show p = case p of
