@@ -18,7 +18,7 @@ instance P.ToElem Player where
   toElem p = do
     P.forElems ("#" ++ (p ^. playerId) ++" .deck") $ do
       P.clear
-      P.toElem $ p ^. (playerName) ++ "の残り山札: " ++ (show $ length $ p ^. deck)
+      P.toElem $ p ^. playerName ++ "の残り山札: " ++ (show $ length $ p ^. deck)
     P.forElems ("#" ++ (p ^. playerId) ++" .hand") $ do
       P.clear
       mconcat $ map (P.li . (p ^. representation)) $ p ^. hand
