@@ -19,6 +19,8 @@ instance P.ToElem Field where
         Nothing -> ""
         Just card -> show card
 
+type ZipicAccessor a = [a] -> ([a], [a])
+
 data Phase = Draw | Hand | Sacrifice (Maybe ([Card] -> Card)) | Summon (Maybe ([Card] -> Card)) [[Card] -> Card] | End
 
 instance Show Phase where
