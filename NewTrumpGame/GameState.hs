@@ -37,9 +37,9 @@ data Phase =
   Draw
   | Hand
   | Sacrifice
-    (Maybe (ZipicAccessor Card)) -- object of summon
+    (ZipicAccessor Card) -- object of summon
   | Summon 
-    (Maybe (ZipicAccessor Card)) -- object of summon
+    (ZipicAccessor Card) -- object of summon
     (Maybe (ZipicAccessorsMul Card)) -- sucrifices
   | End
 
