@@ -62,15 +62,18 @@ areYouTurnPlayer :: Lens' Game Bool; areYouTurnPlayer = lens _areYouTurnPlayer $
 phase :: Lens' Game Phase; phase = lens _phase $ \p x -> p { _phase = x }
 field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
 
-getTurnPlayer :: Game -> Player
-getTurnPlayer game = game ^. players . (if game ^. areYouTurnPlayer then _1 else _2)
+turnPlayer :: Lens' Game Player
+turnPlayer = lens getting setting
+  where
+    getting game = game ^. players . (if game ^. areYouTurnPlayer then _1 else _2)
+    setting game p = players . (if game ^. areYouTurnPlayer then _1 else _2) .~ p $ game
 
 instance P.ToElem Game where
   toElem game = do
     P.toElem $ game ^. field
     P.forElems "#status" $ do
       P.clear
-      P.toElem $ "-- " ++ ((getTurnPlayer game) ^. playerName) ++ "の番です、" ++ (show $ game ^. phase)
+      P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
     let (a, b) = game ^. players
     P.toElem a
     P.toElem b
