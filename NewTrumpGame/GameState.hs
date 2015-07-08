@@ -53,17 +53,17 @@ instance Show Phase where
 
 data Game = Game {
   _players :: (Player, Player), -- (players ^. _1 . playerName) == "あなた"
-  _turnPlayer :: Bool,
+  _areYouTurnPlayer :: Bool,
   _phase :: Phase,
   _field :: Field
   }
 players :: Lens' Game (Player, Player); players = lens _players (\p x -> p { _players = x })
-turnPlayer :: Lens' Game Bool; turnPlayer = lens _turnPlayer $ \p x -> p { _turnPlayer = x }
+areYouTurnPlayer :: Lens' Game Bool; areYouTurnPlayer = lens _areYouTurnPlayer $ \p x -> p { _areYouTurnPlayer = x }
 phase :: Lens' Game Phase; phase = lens _phase $ \p x -> p { _phase = x }
 field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
 
 getTurnPlayer :: Game -> Player
-getTurnPlayer game = game ^. players . (if game ^. turnPlayer then _1 else _2)
+getTurnPlayer game = game ^. players . (if game ^. areYouTurnPlayer then _1 else _2)
 
 instance P.ToElem Game where
   toElem game = do
@@ -85,7 +85,7 @@ initGame = do
       _players =
         (initialDraw "あなた" "yours" show deck0,
           initialDraw "コンピュータ" "computers" (const "?") deck1)
-      , _turnPlayer = True
+      , _areYouTurnPlayer = True
       , _phase = Draw
       , _field = Field $ replicate 5 (replicate 3 Nothing)
     }
