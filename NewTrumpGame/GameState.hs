@@ -81,4 +81,11 @@ initGame = do
   deck1 <- initDeck
 
   return $
-    Game { _players = (initialDraw "あなた" "yours" show deck0, initialDraw "コンピュータ" "computers" (const "?") deck1), _turnPlayer = True, _phase = Draw, _field = Field $ replicate 5 (replicate 3 Nothing)}
+    Game {
+      _players =
+        (initialDraw "あなた" "yours" show deck0,
+          initialDraw "コンピュータ" "computers" (const "?") deck1)
+      , _turnPlayer = True
+      , _phase = Draw
+      , _field = Field $ replicate 5 (replicate 3 Nothing)
+    }
