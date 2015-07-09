@@ -5,6 +5,7 @@ import qualified Haste.Perch as P
 import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2)
+import Data.Monoid (mempty)
 
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
@@ -74,6 +75,10 @@ instance P.ToElem Game where
     P.forElems "#status" $ do
       P.clear
       P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
+    case game ^. phase of
+      Sacrifice objOfSummon -> mempty
+      Summon objOfSummon objOfSacr -> mempty
+      _ -> mempty
     let (a, b) = game ^. players
     P.toElem a
     P.toElem b
