@@ -71,6 +71,14 @@ turnPlayer = lens getting setting
     getting game = game ^. players . (if game ^. areYouTurnPlayer then _1 else _2)
     setting game p = players . (if game ^. areYouTurnPlayer then _1 else _2) .~ p $ game
 
+highlightObjOfSummon :: Int -> P.Perch
+highlightObjOfSummon objOfSummon = P.Perch $
+  \e -> do 
+    body <- P.getBody
+    handsEls <- elemsByQS body "#yours ol.hand li"
+    setAttr (handsEls !! objOfSummon) "id" "selected"
+    return e
+
 instance P.ToElem Game where
   toElem game = do
     P.toElem $ game ^. field
