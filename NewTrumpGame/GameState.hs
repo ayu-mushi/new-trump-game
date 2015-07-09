@@ -2,6 +2,8 @@ module NewTrumpGame.GameState
   (initGame, Game, players) where
 import Data.Monoid (mconcat)
 import qualified Haste.Perch as P
+import Haste (alert)
+import Haste.DOM (elemsByQS, setAttr)
 import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2)
@@ -75,13 +77,20 @@ instance P.ToElem Game where
     P.forElems "#status" $ do
       P.clear
       P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
-    case game ^. phase of
-      Sacrifice objOfSummon -> mempty
-      Summon objOfSummon objOfSacr -> mempty
-      _ -> mempty
     let (a, b) = game ^. players
     P.toElem a
     P.toElem b
+    case game ^. phase of
+      Sacrifice objOfSummon ->
+        P.Perch $ \e -> do 
+          body <- P.getBody
+          handsEls <- elemsByQS body "#yours ol.hand li"
+          setAttr (handsEls !! objOfSummon) "id" "selected"
+          return e
+      Summon objOfSummon objOfSacr ->
+        mempty
+      _ ->
+        mempty
 
 initGame :: IO Game
 initGame = do
@@ -94,6 +103,6 @@ initGame = do
         (initialDraw "あなた" "yours" show deck0,
           initialDraw "コンピュータ" "computers" (const "?") deck1)
       , _areYouTurnPlayer = True
-      , _phase = Draw
+      , _phase = Sacrifice 1
       , _field = Field $ replicate 5 (replicate 3 Nothing)
     }
