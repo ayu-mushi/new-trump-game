@@ -28,18 +28,19 @@ data Phase =
   | Hand
   | Sacrifice
     Int -- object of summon
-  | Summon 
-    Int -- object of summon
     [Int] -- sucrifices
+  | Summon 
+    Int 
+    [Int]
   | End
 
 instance Show Phase where
   show p = case p of
-    Draw        -> "ドロー"
-    Hand        -> "手札を選択"
-    Sacrifice _ -> "生贄を選択"
-    Summon  _ _ -> "召喚する位置を選択"
-    End         -> "手番を交代"
+    Draw          -> "ドロー"
+    Hand          -> "手札を選択"
+    Sacrifice _ _ -> "生贄を選択"
+    Summon    _ _ -> "召喚する位置を選択"
+    End           -> "手番を交代"
 
 data Game = Game {
   _players :: (Player, Player), -- (players ^. _1 . playerName) == "あなた"
@@ -76,8 +77,13 @@ instance P.ToElem Game where
     P.toElem a
     P.toElem b
     case game ^. phase of
-      Sacrifice objOfSummon ->
+      Sacrifice objOfSummon objOfSacr -> do
         highlightObjOfSummon objOfSummon
+        P.Perch $ \e -> do
+          body <- P.getBody
+          handsEls <- elemsByQS body "#yours ol.hand li"
+          mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
+          return e
       Summon objOfSummon objOfSacr -> do
         highlightObjOfSummon objOfSummon
         P.Perch $ \e -> do
