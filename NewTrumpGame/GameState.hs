@@ -23,19 +23,6 @@ instance P.ToElem Field where
         Nothing -> ""
         Just card -> show card
 
-type ZipicAccessor a = [a] -> ([a], [a])
-zipNext :: ZipicAccessor a -> ZipicAccessor a
-zipNext za xs = ((a:ls), rs)
-  where (ls, (a:rs)) = za xs
-zipFirst :: ZipicAccessor a -> ZipicAccessor a
-zipFirst za xs = ([], xs)
-
-specialIfSelected :: ZipicAccessor a -> [a] -> (a -> b) -> (a -> b) -> [b]
-specialIfSelected za xs general special = (reverse $ map general ls) ++ ((special a):(map general rs))
-  where (ls, (a:rs)) = za xs
-
-type ZipicAccessorsMul a = [a] -> [[a]]
-
 data Phase =
   Draw
   | Hand
