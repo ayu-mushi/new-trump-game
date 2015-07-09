@@ -8,7 +8,7 @@ import Data.Monoid (mconcat)
 import Control.Monad (void)
 import Lens.Family2
 import Lens.Family2.Stock
-import System.Random (newStdGen)
+import System.Random (mkStdGen)
 
 import NewTrumpGame.GameState
 import NewTrumpGame.Player
@@ -78,3 +78,6 @@ main = do
   body <- P.getBody
   P.build (P.toElem game) body
   return ()
+  
+  where
+    newStdGen = fmap mkStdGen $ ffi $ toJSString "(function(){ return Math.floor(Math.random() * Math.pow(2, 53)); })"
