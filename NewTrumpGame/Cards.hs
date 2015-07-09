@@ -4,7 +4,8 @@ module NewTrumpGame.Cards
     energy,
     cost,
     initDeck) where
-import System.Random.Shuffle (shuffleM)
+import System.Random.Shuffle (shuffle')
+import System.Random (RandomGen)
 
 newtype Color = Color { index :: Int }
 
@@ -29,7 +30,6 @@ energy _              = 1
 cost :: Color -> Int
 cost (Color i) = if i > 10 then 2 else 0
 
-initDeck :: IO [Card]
-initDeck = do
-  let allCards = concat $ replicate 4 $ map Card $ Nothing : (map (Just . Color) [1..13])
-  shuffleM allCards
+initDeck :: RandomGen g => g -> [Card]
+initDeck g = shuffle' allCards (length allCards) g
+  where allCards = concat $ replicate 4 $ map Card $ Nothing : (map (Just . Color) [1..13])

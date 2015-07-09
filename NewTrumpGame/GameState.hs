@@ -8,6 +8,7 @@ import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2)
 import Data.Monoid (mempty)
+import System.Random (RandomGen)
 
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
@@ -92,16 +93,12 @@ instance P.ToElem Game where
       _ ->
         mempty
 
-initGame :: IO Game
-initGame = do
-  deck0 <- initDeck
-  deck1 <- initDeck
-
-  return $
+initGame :: RandomGen g => g -> g -> Game
+initGame g h = 
     Game {
       _players =
-        (initialDraw "あなた" "yours" show deck0,
-          initialDraw "コンピュータ" "computers" (const "?") deck1)
+        (initialDraw "あなた" "yours" show $ initDeck g,
+          initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
       , _areYouTurnPlayer = True
       , _phase = Summon 0 [1, 2]
       , _field = Field $ replicate 5 (replicate 3 Nothing)

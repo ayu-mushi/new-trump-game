@@ -8,6 +8,7 @@ import Data.Monoid (mconcat)
 import Control.Monad (void)
 import Lens.Family2
 import Lens.Family2.Stock
+import System.Random (newStdGen)
 
 import NewTrumpGame.GameState
 import NewTrumpGame.Player
@@ -70,7 +71,9 @@ forIndexOfClickedTdElem as az bs bz f el = forTargetWhenEvt el OnClick $
 
 main :: IO ()
 main = do
-  game <- initGame
+  g <- newStdGen
+  h <- newStdGen
+  let game = initGame g h
   reftoGame <- newMVar game
   body <- P.getBody
   P.build (P.toElem game) body
