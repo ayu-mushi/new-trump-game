@@ -37,10 +37,10 @@ data Phase =
   Draw
   | Hand
   | Sacrifice
-    (ZipicAccessor Card) -- object of summon
+    Int -- object of summon
   | Summon 
-    (ZipicAccessor Card) -- object of summon
-    (Maybe (ZipicAccessorsMul Card)) -- sucrifices
+    Int -- object of summon
+    [Int] -- sucrifices
   | End
 
 instance Show Phase where
