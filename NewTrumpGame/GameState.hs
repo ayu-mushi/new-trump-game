@@ -90,13 +90,9 @@ instance P.ToElem Game where
     P.toElem b
     case game ^. phase of
       Sacrifice objOfSummon ->
-        P.Perch $ \e -> do 
-          body <- P.getBody
-          handsEls <- elemsByQS body "#yours ol.hand li"
-          setAttr (handsEls !! objOfSummon) "id" "selected"
-          return e
+        highlightObjOfSummon objOfSummon
       Summon objOfSummon objOfSacr ->
-        mempty
+        highlightObjOfSummon objOfSummon
       _ ->
         mempty
 
