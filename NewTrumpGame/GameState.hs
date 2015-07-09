@@ -91,8 +91,13 @@ instance P.ToElem Game where
     case game ^. phase of
       Sacrifice objOfSummon ->
         highlightObjOfSummon objOfSummon
-      Summon objOfSummon objOfSacr ->
+      Summon objOfSummon objOfSacr -> do
         highlightObjOfSummon objOfSummon
+        P.Perch $ \e -> do
+          body <- P.getBody
+          handsEls <- elemsByQS body "#yours ol.hand li"
+          mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
+          return e
       _ ->
         mempty
 
@@ -107,6 +112,6 @@ initGame = do
         (initialDraw "あなた" "yours" show deck0,
           initialDraw "コンピュータ" "computers" (const "?") deck1)
       , _areYouTurnPlayer = True
-      , _phase = Sacrifice 1
+      , _phase = Summon 0 [1, 2]
       , _field = Field $ replicate 5 (replicate 3 Nothing)
     }
