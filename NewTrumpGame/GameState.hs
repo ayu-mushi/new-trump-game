@@ -80,15 +80,13 @@ instance P.ToElem Game where
       Sacrifice objOfSummon objOfSacr -> do
         highlightObjOfSummon objOfSummon
         P.Perch $ \e -> do
-          body <- P.getBody
-          handsEls <- elemsByQS body "#yours ol.hand li"
+          handsEls <- elemsByQS e "#yours ol.hand li"
           mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
           return e
       Summon objOfSummon objOfSacr -> do
         highlightObjOfSummon objOfSummon
         P.Perch $ \e -> do
-          body <- P.getBody
-          handsEls <- elemsByQS body "#yours ol.hand li"
+          handsEls <- elemsByQS e "#yours ol.hand li"
           mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
           return e
       _ ->
