@@ -1,6 +1,6 @@
 module NewTrumpGame.GameState
   (initGame, Game, players) where
-import Data.Monoid (mconcat, mempty, (<>))
+import Data.Monoid (mconcat, mempty, (<>), mappend)
 import qualified Haste.Perch as P
 import Haste (alert)
 import Haste.DOM (elemsByQS, setAttr)
@@ -60,17 +60,13 @@ turnPlayer = lens getting setting
     setting game p = players . (if game ^. areYouTurnPlayer then _1 else _2) .~ p $ game
 
 instance P.ToElem Game where
-  toElem game = do
+  toElem game = mconcat [
     P.toElem $ game ^. field
-    P.forElems "#status" $ do
-      P.clear
-      P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
-    let (a, b) = game ^. players
-    P.toElem a
-    P.toElem b
-
-    let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do {handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e}
-    case game ^. phase of
+   ,P.forElems "#status" $
+      mappend P.clear $ P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
+   ,P.toElem $ game ^. players . _1
+   ,P.toElem $ game ^. players . _2
+   ,case game ^. phase of
       Sacrifice objOfSummon objOfSacr ->
         (highlightObjOfSummon objOfSummon)
         <>(P.Perch $ \e -> do
@@ -85,6 +81,8 @@ instance P.ToElem Game where
           return e)
       _ ->
         mempty
+    ]
+    where highlightObjOfSummon objOfSummon = P.Perch $ \e -> do {handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e}
 
 initGame :: RandomGen g => g -> g -> Game
 initGame g h = 
