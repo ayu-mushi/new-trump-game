@@ -1,3 +1,4 @@
+{-# LANGUAGE Rank2Types #-}
 module NewTrumpGame.GameState
   (initGame, Game, players) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
@@ -92,6 +93,12 @@ summon cut game = let yourHand = game ^. players . _1 . hand in
         else 
           error "it is a havitant, previously"
     _ -> error "You can select summon zone if and only if it is summon phase and is your turn"
+
+draw :: Game -> Lens' (Player, Player) Player -> Game
+draw game which = let get (a:newDeck) = Just a; get _ = Nothing in
+  case get $ game ^. players . which . deck of
+    Just card -> game & players . which . hand %~ (card:) & players . which . deck %~ tail
+    Nothing   -> game
 
 instance P.ToElem Game where
   toElem game = mconcat [
