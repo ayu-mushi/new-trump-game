@@ -68,17 +68,17 @@ instance P.ToElem Game where
    ,P.toElem $ game ^. players . _2
    ,case game ^. phase of
       Sacrifice objOfSummon objOfSacr ->
-        (highlightObjOfSummon objOfSummon)
-        <>(P.Perch $ \e -> do
-          handsEls <- elemsByQS e "#yours ol.hand li"
-          mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
-          return e)
+        mappend (highlightObjOfSummon objOfSummon) $
+          P.Perch $ \e -> do
+            handsEls <- elemsByQS e "#yours ol.hand li"
+            mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
+            return e
       Summon objOfSummon objOfSacr ->
-        (highlightObjOfSummon objOfSummon)
-        <>(P.Perch $ \e -> do
-          handsEls <- elemsByQS e "#yours ol.hand li"
-          mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
-          return e)
+        mappend (highlightObjOfSummon objOfSummon) $
+          P.Perch $ \e -> do
+            handsEls <- elemsByQS e "#yours ol.hand li"
+            mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
+            return e
       _ ->
         mempty
     ]
