@@ -36,6 +36,7 @@ data Phase =
     Int 
     [Int]
   | End
+  | Finish Bool
 
 instance Show Phase where
   show p = case p of
@@ -44,6 +45,8 @@ instance Show Phase where
     Sacrifice _ _ -> "生贄を選択"
     Summon    _ _ -> "召喚する位置を選択"
     End           -> "手番を交代"
+    Finish True   -> "あなたの勝ちです!"
+    Finish False  -> "コンピュータが勝ち!"
 
 data Game = Game {
   _players :: (Player, Player), -- (players ^. _1 . playerName) == "あなた"
