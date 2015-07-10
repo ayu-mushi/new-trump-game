@@ -1,13 +1,12 @@
 module NewTrumpGame.GameState
   (initGame, Game, players) where
-import Data.Monoid (mconcat)
+import Data.Monoid (mconcat, mempty, (<>))
 import qualified Haste.Perch as P
 import Haste (alert)
 import Haste.DOM (elemsByQS, setAttr)
 import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2)
-import Data.Monoid (mempty)
 import System.Random (RandomGen)
 
 import NewTrumpGame.Cards
@@ -78,18 +77,18 @@ instance P.ToElem Game where
     P.toElem a
     P.toElem b
     case game ^. phase of
-      Sacrifice objOfSummon objOfSacr -> do
-        highlightObjOfSummon objOfSummon
-        P.Perch $ \e -> do
+      Sacrifice objOfSummon objOfSacr ->
+        (highlightObjOfSummon objOfSummon)
+        <>(P.Perch $ \e -> do
           handsEls <- elemsByQS e "#yours ol.hand li"
           mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
-          return e
-      Summon objOfSummon objOfSacr -> do
-        highlightObjOfSummon objOfSummon
-        P.Perch $ \e -> do
+          return e)
+      Summon objOfSummon objOfSacr ->
+        (highlightObjOfSummon objOfSummon)
+        <>(P.Perch $ \e -> do
           handsEls <- elemsByQS e "#yours ol.hand li"
           mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
-          return e
+          return e)
       _ ->
         mempty
 
