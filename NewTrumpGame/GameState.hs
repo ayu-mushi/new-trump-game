@@ -66,19 +66,19 @@ instance P.ToElem Game where
       mappend P.clear $
         P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
    ,uncurry mappend $ both %~ P.toElem $ game ^. players
-   ,let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do { handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "obj-of-summon"; return e } in
+   ,let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do { handsLis <- elemsByQS e "#yours ol.hand li"; setAttr (handsLis !! objOfSummon) "id" "obj-of-summon"; return e } in
       case game ^. phase of
         Sacrifice objOfSummon objOfSacr ->
           mappend (highlightObjOfSummon objOfSummon) $
             P.Perch $ \e -> do
-              handsEls <- elemsByQS e "#yours ol.hand li"
-              mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
+              handsLis <- elemsByQS e "#yours ol.hand li"
+              mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsLis !!) objOfSacr)
               return e
         Summon objOfSummon objOfSacr ->
           mappend (highlightObjOfSummon objOfSummon) $
             P.Perch $ \e -> do
-              handsEls <- elemsByQS e "#yours ol.hand li"
-              mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
+              handsLis <- elemsByQS e "#yours ol.hand li"
+              mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsLis !!) objOfSacr)
               return e
         _ ->
           mempty
