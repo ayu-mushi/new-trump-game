@@ -4,7 +4,6 @@ import Haste.DOM (elemsByQS)
 import Haste.Foreign (ffi)
 import Control.Concurrent
 import qualified Haste.Perch as P
-import Data.Monoid (mconcat)
 import Control.Monad (void)
 import Lens.Family2
 import Lens.Family2.Stock
