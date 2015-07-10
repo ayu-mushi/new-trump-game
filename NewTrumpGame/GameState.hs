@@ -8,6 +8,8 @@ import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2, both)
 import System.Random (RandomGen)
+import Control.Monad (forM_, when)
+import Data.Maybe (isNothing)
 
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
@@ -79,6 +81,10 @@ instance P.ToElem Game where
             P.Perch $ \e -> do
               handsLis <- elemsByQS e "#yours ol.hand li"
               mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsLis !!) objOfSacr)
+              fieldTrs <- elemsByQS e "#field tr"
+              mostUnderTds <- elemsByQS (last fieldTrs) "td"
+              forM_ (zip mostUnderTds (map isNothing $ last $ fromField $ game ^. field)) $
+                \(eachTd, isNotLived) -> when isNotLived $ setAttr eachTd "class" "summonable-zone"
               return e
         _ ->
           mempty
