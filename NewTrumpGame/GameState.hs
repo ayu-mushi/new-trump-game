@@ -134,11 +134,11 @@ instance P.ToElem Game where
 
 initGame :: RandomGen g => g -> g -> Game
 initGame g h = 
-    Game {
-      _players =
-        (initialDraw "あなた" "yours" show $ initDeck g,
-          initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
-      , _areYouTurnPlayer = True
-      , _phase = Summon 0 [1, 2]
-      , _field = Field $ replicate 5 (replicate 3 Nothing)
-    }
+  Game {
+    _players =
+      (initialDraw "あなた" "yours" show $ initDeck g,
+        initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
+    , _areYouTurnPlayer = True
+    , _phase = Summon 0 [1, 2]
+    , _field = Field $ replicate 5 (replicate 3 Nothing)
+  }
