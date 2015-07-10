@@ -62,8 +62,7 @@ turnPlayer = lens getting setting
 highlightObjOfSummon :: Int -> P.Perch
 highlightObjOfSummon objOfSummon = P.Perch $
   \e -> do 
-    body <- P.getBody
-    handsEls <- elemsByQS body "#yours ol.hand li"
+    handsEls <- elemsByQS e "#yours ol.hand li"
     setAttr (handsEls !! objOfSummon) "id" "selected"
     return e
 
