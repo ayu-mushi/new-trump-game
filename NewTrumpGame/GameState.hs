@@ -63,10 +63,12 @@ instance P.ToElem Game where
   toElem game = mconcat [
     P.toElem $ game ^. field
    ,P.forElems "#status" $
-      mappend P.clear $ P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
+      mappend P.clear $
+        P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
    ,P.toElem $ game ^. players . _1
    ,P.toElem $ game ^. players . _2
-   ,case game ^. phase of
+   ,let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do {handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e} in
+    case game ^. phase of
       Sacrifice objOfSummon objOfSacr ->
         mappend (highlightObjOfSummon objOfSummon) $
           P.Perch $ \e -> do
@@ -82,7 +84,6 @@ instance P.ToElem Game where
       _ ->
         mempty
     ]
-    where highlightObjOfSummon objOfSummon = P.Perch $ \e -> do {handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e}
 
 initGame :: RandomGen g => g -> g -> Game
 initGame g h = 
