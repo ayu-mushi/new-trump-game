@@ -66,7 +66,7 @@ instance P.ToElem Game where
       mappend P.clear $
         P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
    ,uncurry mappend $ both %~ P.toElem $ game ^. players
-   ,let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do { handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e } in
+   ,let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do { handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "obj-of-summon"; return e } in
       case game ^. phase of
         Sacrifice objOfSummon objOfSacr ->
           mappend (highlightObjOfSummon objOfSummon) $
