@@ -69,6 +69,16 @@ selectObjOfSummon i game = let yourHand = game ^. players . _1 . hand in
       else phase .~ Sacrifice i [] $ game
     else game
 
+selectSacrifice :: Int -> Game -> Game
+selectSacrifice i game = let yourHand = game ^. players . _1 . hand in
+  case game ^. phase of
+    Sacrifice objOfSummon sacrifices ->
+      if (cost $ fromJust $ fromCard $ yourHand!!objOfSummon) < (foldr (+) 0 $ map (energy . (yourHand!!)) $ i:sacrifices)
+        then phase .~ (Sacrifice objOfSummon $ i:sacrifices) $ game
+        else phase .~ (Summon objOfSummon $ i:sacrifices) $ game
+    _ ->
+      error "You can select sacrifice if and only if it is sacrifice phase and is your turn"
+
 instance P.ToElem Game where
   toElem game = mconcat [
     P.toElem $ game ^. field
