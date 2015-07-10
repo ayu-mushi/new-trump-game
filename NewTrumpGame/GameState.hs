@@ -65,23 +65,23 @@ instance P.ToElem Game where
    ,P.forElems "#status" $
       mappend P.clear $
         P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
-   , uncurry mappend $ both %~ P.toElem $ game ^. players
-   , let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do { handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e } in
-    case game ^. phase of
-      Sacrifice objOfSummon objOfSacr ->
-        mappend (highlightObjOfSummon objOfSummon) $
-          P.Perch $ \e -> do
-            handsEls <- elemsByQS e "#yours ol.hand li"
-            mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
-            return e
-      Summon objOfSummon objOfSacr ->
-        mappend (highlightObjOfSummon objOfSummon) $
-          P.Perch $ \e -> do
-            handsEls <- elemsByQS e "#yours ol.hand li"
-            mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
-            return e
-      _ ->
-        mempty
+   ,uncurry mappend $ both %~ P.toElem $ game ^. players
+   ,let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do { handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e } in
+      case game ^. phase of
+        Sacrifice objOfSummon objOfSacr ->
+          mappend (highlightObjOfSummon objOfSummon) $
+            P.Perch $ \e -> do
+              handsEls <- elemsByQS e "#yours ol.hand li"
+              mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
+              return e
+        Summon objOfSummon objOfSacr ->
+          mappend (highlightObjOfSummon objOfSummon) $
+            P.Perch $ \e -> do
+              handsEls <- elemsByQS e "#yours ol.hand li"
+              mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsEls !!) objOfSacr)
+              return e
+        _ ->
+          mempty
     ]
 
 initGame :: RandomGen g => g -> g -> Game
