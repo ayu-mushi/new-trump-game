@@ -1,5 +1,5 @@
 module NewTrumpGame.Cards
-  ( Card,
+  ( Card(fromCard),
     isColored,
     energy,
     cost,
