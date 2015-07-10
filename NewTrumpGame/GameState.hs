@@ -6,7 +6,7 @@ import Haste (alert)
 import Haste.DOM (elemsByQS, setAttr)
 import Lens.Family2
 import Lens.Family2.Unchecked
-import Lens.Family2.Stock (_1, _2)
+import Lens.Family2.Stock (_1, _2, both)
 import System.Random (RandomGen)
 
 import NewTrumpGame.Cards
@@ -65,8 +65,7 @@ instance P.ToElem Game where
    ,P.forElems "#status" $
       mappend P.clear $
         P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
-   ,P.toElem $ game ^. players . _1
-   ,P.toElem $ game ^. players . _2
+   , uncurry mappend $ both %~ P.toElem $ game ^. players
    ,let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do {handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e} in
     case game ^. phase of
       Sacrifice objOfSummon objOfSacr ->
