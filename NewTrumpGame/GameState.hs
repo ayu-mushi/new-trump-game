@@ -79,6 +79,20 @@ selectSacrifice i game = let yourHand = game ^. players . _1 . hand in
     _ ->
       error "You can select sacrifice if and only if it is sacrifice phase and is your turn"
 
+gap :: ([a], [a]) -> a
+gap (_, (a:_)) = a
+
+summon :: ([Maybe Card] -> ([Maybe Card], [Maybe Card])) -> Game -> Game
+summon cut game = let yourHand = game ^. players . _1 . hand in
+  case game ^. phase of
+    Summon objOfSummon sacrifices ->
+      if isNothing $ gap $ cut $ last $ fromField $ game ^. field
+        then
+          game & players . _1 . hand .~ map (^._2) [ixedCard | ixedCard <- (zip [0..] yourHand), n <- sacrifices, n == (ixedCard ^. _1) ] & phase .~ End
+        else 
+          error "it is a havitant, previously"
+    _ -> error "You can select summon zone if and only if it is summon phase and is your turn"
+
 instance P.ToElem Game where
   toElem game = mconcat [
     P.toElem $ game ^. field
