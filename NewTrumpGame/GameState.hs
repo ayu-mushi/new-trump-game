@@ -9,7 +9,7 @@ import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2, both)
 import System.Random (RandomGen)
 import Control.Monad (forM_, when)
-import Data.Maybe (isNothing)
+import Data.Maybe (isNothing, fromJust)
 
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
@@ -60,6 +60,14 @@ turnPlayer = lens getting setting
   where
     getting game = game ^. players . (if game ^. areYouTurnPlayer then _1 else _2)
     setting game p = players . (if game ^. areYouTurnPlayer then _1 else _2) .~ p $ game
+
+selectObjOfSummon :: Int -> Game -> Game
+selectObjOfSummon i game = let yourHand = game ^. players . _1 . hand in
+  if isColored $ yourHand !! i
+    then if 0 == (cost $ fromJust $ fromCard $ yourHand !! i)
+      then phase .~ Summon i [] $ game
+      else phase .~ Sacrifice i [] $ game
+    else game
 
 instance P.ToElem Game where
   toElem game = mconcat [
