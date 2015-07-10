@@ -15,9 +15,9 @@ import NewTrumpGame.Player
 newtype Field = Field { fromField :: [[Maybe Card]] }
 
 instance P.ToElem Field where
-  toElem (Field xss) = P.forElems "table#field" $ do
-    P.clear
-    mconcat $ map (P.tr . mconcat . map (P.td . showMaybeCard)) xss
+  toElem (Field xss) = P.forElems "table#field" $
+    mappend P.clear $
+      mconcat $ map (P.tr . mconcat . map (P.td . showMaybeCard)) xss
     where
       showMaybeCard mbcard = case mbcard of
         Nothing -> ""
@@ -66,7 +66,7 @@ instance P.ToElem Game where
       mappend P.clear $
         P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
    , uncurry mappend $ both %~ P.toElem $ game ^. players
-   ,let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do {handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e} in
+   , let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do { handsEls <- elemsByQS e "#yours ol.hand li"; setAttr (handsEls !! objOfSummon) "id" "selected"; return e } in
     case game ^. phase of
       Sacrifice objOfSummon objOfSacr ->
         mappend (highlightObjOfSummon objOfSummon) $
