@@ -134,7 +134,7 @@ instance P.ToElem Game where
         case game ^. phase of
           Finish _ -> P.toElem $ show $ game^.phase
           _        -> P.toElem $ "-- " ++ (game ^. turnPlayer & playerName) ++ "の番です、" ++ (show $ game ^. phase)
-   ,uncurry mappend $ both %~ P.toElem $ game ^. players
+   ,game ^. players & both %~ P.toElem & uncurry mappend
    ,case game ^. phase of
       Main ->
         P.Perch $ \e -> do
