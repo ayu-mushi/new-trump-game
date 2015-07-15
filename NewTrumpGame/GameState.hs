@@ -1,6 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 module NewTrumpGame.GameState
-  (initGame, Game, players) where
+  (initGame, Game, players, draw, summon, selectSacrifice, selectObjOfSummon) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
