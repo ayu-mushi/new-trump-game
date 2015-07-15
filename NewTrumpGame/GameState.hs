@@ -131,7 +131,9 @@ instance P.ToElem Game where
     P.toElem $ game ^. field
    ,P.forElems "#status" $
       mappend P.clear $
-        P.toElem $ "-- " ++ (game ^. turnPlayer & playerName) ++ "の番です、" ++ (show $ game ^. phase)
+        case game ^. phase of
+          Finish _ -> P.toElem $ show $ game^.phase
+          _        -> P.toElem $ "-- " ++ (game ^. turnPlayer & playerName) ++ "の番です、" ++ (show $ game ^. phase)
    ,uncurry mappend $ both %~ P.toElem $ game ^. players
    ,case game ^. phase of
       Main ->
