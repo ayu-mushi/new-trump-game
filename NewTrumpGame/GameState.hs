@@ -118,6 +118,14 @@ draw game = let get (a:newDeck) = Just a; get _ = Nothing in
     Just card -> game & turnPlayer . hand %~ (card:) & turnPlayer . deck %~ tail & phase .~ Main
     Nothing   -> game & phase .~ Finish Nothing
 
+data Play = PlDraw | PlSelectObjOfSummon Int | PlSelectSacrifice Int | PlSummon Int
+run :: Play -> Game -> Game
+run play = case play of
+  PlDraw                -> draw
+  PlSelectObjOfSummon i -> selectObjOfSummon i
+  PlSelectSacrifice   i -> selectSacrifice i
+  PlSummon            i -> summon i
+
 instance P.ToElem Game where
   toElem game = mconcat [
     P.toElem $ game ^. field
