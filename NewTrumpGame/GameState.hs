@@ -89,17 +89,20 @@ selectSacrifice costOfObjOfSummon sacrifices i game = let theHand = game ^. turn
 selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j = phase .~ Move (i, j)
 
-move :: Int -> Int -> Int -> Int -> Game -> Game
-move x y i j game = 
-  game
-    & field . (lens fromField $ \(Field p) x -> Field x) . (ix i) . (ix j) .~ ((game ^. field & fromField) !! x !! y)
-    & field . (lens fromField $ \(Field p) x -> Field x) . (ix x) . (ix j) .~ Nothing
-
 summonableZone :: Lens' Field [Maybe (Bool, Color)]
 summonableZone = lens (last.fromField) $ \(Field p) x -> Field $ (init p) ++ [x]
 
 ix :: Int -> Lens' [a] a
 ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
+
+cell :: Int -> Int -> Lens' Field (Maybe (Bool, Color))
+cell i j = (lens fromField (\(Field xss) yss -> Field yss)) . (ix i) . (ix j)
+
+move :: Int -> Int -> Int -> Int -> Game -> Game
+move x y i j game = 
+  game
+    & field . (lens fromField $ \(Field p) x -> Field x) . (ix i) . (ix j) .~ ((game ^. field & fromField) !! x !! y)
+    & field . (lens fromField $ \(Field p) x -> Field x) . (ix x) . (ix j) .~ Nothing
 
 summon :: Int -> Int -> Color -> Game -> Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
