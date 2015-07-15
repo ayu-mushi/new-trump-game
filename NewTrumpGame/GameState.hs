@@ -31,7 +31,7 @@ data Phase =
   Draw
   | Hand
   | Sacrifice
-    Int -- object of summon
+    Int -- cost of object of summon
     [Int] -- sucrifices
   | Summon 
     Int 
@@ -76,9 +76,9 @@ selectObjOfSummon i game = let yourHand = game ^. players . _1 . hand in
 selectSacrifice :: Int -> Game -> Game
 selectSacrifice i game = let yourHand = game ^. players . _1 . hand in
   case game ^. phase of
-    Sacrifice objOfSummon sacrifices ->
-      if (cost $ fromJust $ fromCard $ yourHand!!objOfSummon) < (foldr (+) 0 $ map (energy . (yourHand!!)) $ i:sacrifices)
-        then phase .~ (Sacrifice objOfSummon $ insert i sacrifices) $ game
+    Sacrifice costOfObjOfSummon sacrifices ->
+      if costOfObjOfSummon < (foldr (+) 0 $ map (energy . (yourHand!!)) $ i:sacrifices)
+        then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
         else phase .~ End $ players._1.hand %~ (foldr (.) id $ map delByIx sacrifices) $ game
     _ ->
       error "You can select sacrifice if and only if it is sacrifice phase and is your turn"
@@ -101,7 +101,7 @@ summon for game = let yourHand = game ^. players . _1 . hand in
           game
             & players . _1 . hand %~ delByIx objOfSummon
             & field . summonableZone . (ix for) .~ (Just $ yourHand!!objOfSummon)
-            & phase .~ Sacrifice objOfSummon []
+            & phase .~ Sacrifice (cost $ fromJust $ fromCard $ yourHand!!objOfSummon) []
         else 
           error "it is a havitant, previously"
     _ -> error "You can select summon zone if and only if it is summon phase and is your turn"
@@ -119,24 +119,23 @@ instance P.ToElem Game where
       mappend P.clear $
         P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
    ,uncurry mappend $ both %~ P.toElem $ game ^. players
-   ,let highlightObjOfSummon objOfSummon = P.Perch $ \e -> do { handsLis <- elemsByQS e "#yours ol.hand li"; setAttr (handsLis !! objOfSummon) "id" "obj-of-summon"; return e } in
-      case game ^. phase of
-        Sacrifice objOfSummon objOfSacr ->
-          mappend (highlightObjOfSummon objOfSummon) $
-            P.Perch $ \e -> do
-              handsLis <- elemsByQS e "#yours ol.hand li"
-              mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsLis !!) objOfSacr)
-              return e
-        Summon objOfSummon ->
-          mappend (highlightObjOfSummon objOfSummon) $
-            P.Perch $ \e -> do
-              fieldTrs <- elemsByQS e "#field tr"
-              mostUnderTds <- elemsByQS (last fieldTrs) "td"
-              forM_ (zip mostUnderTds (map isNothing $ game ^. field . summonableZone)) $
-                \(eachTd, isNotLived) -> when isNotLived $ setAttr eachTd "class" "summonable-zone"
-              return e
-        _ ->
-          mempty
+   ,case game ^. phase of
+      Sacrifice costOfObjOfSummon objOfSacr ->
+        P.Perch $ \e -> do
+          handsLis <- elemsByQS e "#yours ol.hand li"
+          mapM_ (setAttr `flip` "class" `flip` "sacrifice") $ map (handsLis !!) objOfSacr
+          return e
+      Summon objOfSummon ->
+        P.Perch $ \e -> do
+          handsLis <- elemsByQS e "#yours ol.hand li"
+          setAttr (handsLis !! objOfSummon) "id" "obj-of-summon"
+          fieldTrs <- elemsByQS e "#field tr"
+          mostUnderTds <- elemsByQS (last fieldTrs) "td"
+          forM_ (zip mostUnderTds (map isNothing $ game ^. field . summonableZone)) $
+            \(eachTd, isNotLived) -> when isNotLived $ setAttr eachTd "class" "summonable-zone"
+          return e
+      _ ->
+        mempty
     ]
 
 initGame :: RandomGen g => g -> g -> Game
@@ -146,6 +145,6 @@ initGame g h =
       (initialDraw "あなた" "yours" show $ initDeck g,
         initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
     , _areYouTurnPlayer = True
-    , _phase = Summon 0
+    , _phase = Summon 2
     , _field = Field $ replicate 5 (replicate 3 Nothing)
   }
