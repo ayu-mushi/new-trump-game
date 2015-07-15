@@ -21,13 +21,13 @@ newtype Field = Field { fromField :: [[Maybe (Either Card Card)]] } -- Left is ã
 instance P.ToElem Field where
   toElem (Field xss) = P.forElems "table#field" $
     mappend P.clear $
-      mconcat $ map (P.tr . mconcat . map (P.td . showMaybeCard)) xss
+      mconcat $ map (P.tr . mconcat . map showCard) xss
     where
-      showMaybeCard mbcard = case mbcard of
-        Nothing -> ""
+      showCard mbcard = case mbcard of
+        Nothing -> P.td ""
         Just card -> case card of
-          Left a -> show a
-          Right b -> show b
+          Left a  -> (P.td $ show a) `P.attr` P.atr "class" "your-card"
+          Right b -> (P.td $ show b) `P.attr` P.atr "class" "computers-card"
 
 data Phase =
   Draw
