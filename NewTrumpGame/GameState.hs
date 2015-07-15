@@ -45,7 +45,7 @@ data Phase =
 instance Show Phase where
   show p = case p of
     Draw          -> "ドロー"
-    Main          -> "手札を選択"
+    Main          -> "行動を選択"
     Move      _   -> "移動する位置を選択"
     Sacrifice _ _ -> "生贄を選択"
     Summon    _   -> "召喚する位置を選択"
@@ -114,7 +114,7 @@ summon for game = let yourHand = game ^. players . _1 . hand in
 draw :: Lens' (Player, Player) Player -> Game -> Game
 draw which game = let get (a:newDeck) = Just a; get _ = Nothing in
   case get $ game ^. players . which . deck of
-    Just card -> game & players . which . hand %~ (card:) & players . which . deck %~ tail
+    Just card -> game & players . which . hand %~ (card:) & players . which . deck %~ tail & phase .~ Main
     Nothing   -> game
 
 instance P.ToElem Game where
