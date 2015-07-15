@@ -2,6 +2,7 @@
 module NewTrumpGame.GameState
   (initGame, Game, players) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
+import Data.List (insert)
 import qualified Haste.Perch as P
 import Haste (alert)
 import Haste.DOM (elemsByQS, setAttr)
@@ -34,7 +35,6 @@ data Phase =
     [Int] -- sucrifices
   | Summon 
     Int 
-    [Int]
   | End
   | Finish Bool
 
@@ -43,7 +43,7 @@ instance Show Phase where
     Draw          -> "ドロー"
     Hand          -> "手札を選択"
     Sacrifice _ _ -> "生贄を選択"
-    Summon    _ _ -> "召喚する位置を選択"
+    Summon    _   -> "召喚する位置を選択"
     End           -> "手番を交代"
     Finish True   -> "あなたの勝ちです!"
     Finish False  -> "コンピュータが勝ち!"
@@ -69,7 +69,7 @@ selectObjOfSummon :: Int -> Game -> Game
 selectObjOfSummon i game = let yourHand = game ^. players . _1 . hand in
   if isColored $ yourHand !! i
     then if 0 == (cost $ fromJust $ fromCard $ yourHand !! i)
-      then phase .~ Summon i [] $ game
+      then phase .~ Summon i $ game
       else phase .~ Sacrifice i [] $ game
     else game
 
@@ -78,21 +78,30 @@ selectSacrifice i game = let yourHand = game ^. players . _1 . hand in
   case game ^. phase of
     Sacrifice objOfSummon sacrifices ->
       if (cost $ fromJust $ fromCard $ yourHand!!objOfSummon) < (foldr (+) 0 $ map (energy . (yourHand!!)) $ i:sacrifices)
-        then phase .~ (Sacrifice objOfSummon $ i:sacrifices) $ game
-        else phase .~ (Summon objOfSummon $ i:sacrifices) $ game
+        then phase .~ (Sacrifice objOfSummon $ insert i sacrifices) $ game
+        else phase .~ End $ players._1.hand %~ (foldr (.) id $ map delByIx sacrifices) $ game
     _ ->
       error "You can select sacrifice if and only if it is sacrifice phase and is your turn"
 
-gap :: ([a], [a]) -> a
-gap (_, (a:_)) = a
+delByIx :: Int -> [a] -> [a]
+delByIx i xs = (take i xs) ++ (drop (i+1) xs)
 
-summon :: ([Maybe Card] -> ([Maybe Card], [Maybe Card])) -> Game -> Game
-summon cut game = let yourHand = game ^. players . _1 . hand in
+summonableZone :: Lens' Field [Maybe Card]
+summonableZone = lens (last.fromField) $ \(Field p) x -> Field $ (init p) ++ [x]
+
+ix :: Int -> Lens' [a] a
+ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
+
+summon :: Int -> Game -> Game
+summon for game = let yourHand = game ^. players . _1 . hand in
   case game ^. phase of
-    Summon objOfSummon sacrifices ->
-      if isNothing $ gap $ cut $ last $ fromField $ game ^. field
+    Summon objOfSummon ->
+      if (isNothing $ (last $ fromField $ game ^. field) !! for) && ((cost $ fromJust $ fromCard $ yourHand!!objOfSummon) <= (foldr (+) 0 $ map energy $ yourHand))
         then
-          game & players . _1 . hand .~ map (^._2) [ixedCard | ixedCard <- (zip [0..] yourHand), n <- sacrifices, n == (ixedCard ^. _1) ] & phase .~ End
+          game
+            & players . _1 . hand %~ delByIx objOfSummon
+            & field . summonableZone . (ix for) .~ (Just $ yourHand!!objOfSummon)
+            & phase .~ Sacrifice objOfSummon []
         else 
           error "it is a havitant, previously"
     _ -> error "You can select summon zone if and only if it is summon phase and is your turn"
@@ -118,14 +127,12 @@ instance P.ToElem Game where
               handsLis <- elemsByQS e "#yours ol.hand li"
               mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsLis !!) objOfSacr)
               return e
-        Summon objOfSummon objOfSacr ->
+        Summon objOfSummon ->
           mappend (highlightObjOfSummon objOfSummon) $
             P.Perch $ \e -> do
-              handsLis <- elemsByQS e "#yours ol.hand li"
-              mapM_ (setAttr `flip` "class" `flip` "sacrifice") (map (handsLis !!) objOfSacr)
               fieldTrs <- elemsByQS e "#field tr"
               mostUnderTds <- elemsByQS (last fieldTrs) "td"
-              forM_ (zip mostUnderTds (map isNothing $ last $ fromField $ game ^. field)) $
+              forM_ (zip mostUnderTds (map isNothing $ game ^. field . summonableZone)) $
                 \(eachTd, isNotLived) -> when isNotLived $ setAttr eachTd "class" "summonable-zone"
               return e
         _ ->
@@ -139,6 +146,6 @@ initGame g h =
       (initialDraw "あなた" "yours" show $ initDeck g,
         initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
     , _areYouTurnPlayer = True
-    , _phase = Summon 0 [1, 2]
+    , _phase = Summon 0
     , _field = Field $ replicate 5 (replicate 3 Nothing)
   }
