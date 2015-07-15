@@ -1,5 +1,5 @@
 module NewTrumpGame.Player
-  (Player, initialDraw, playerName, hand, deck, markInField) where
+  (Player, initialDraw, playerName, hand, deck) where
 
 import Lens.Family2
 import Lens.Family2.Unchecked
@@ -12,8 +12,7 @@ data Player = Player
   , _deck :: [Card]
   , playerName :: String
   , playerId :: String
-  , representation :: Card -> String
-  , markInField :: Color -> Either Color Color }
+  , representation :: Card -> String}
 
 instance P.ToElem Player where
   toElem p = mappend
@@ -27,5 +26,5 @@ instance P.ToElem Player where
 hand :: Lens' Player [Card]; hand = lens _hand $ \p x -> p { _hand = x }
 deck :: Lens' Player [Card]; deck = lens _deck $ \p x -> p { _deck = x }
 
-initialDraw :: String -> String -> (Card -> String) -> (Color -> Either Color Color) -> [Card] -> Player
-initialDraw name plid rep mark d = Player (take 3 d) (drop 3 d) name plid rep mark
+initialDraw :: String -> String -> (Card -> String) -> [Card] -> Player
+initialDraw name plid rep d = Player (take 3 d) (drop 3 d) name plid rep

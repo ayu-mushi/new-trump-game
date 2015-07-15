@@ -16,18 +16,18 @@ import Data.Maybe (isNothing, fromJust)
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
 
-newtype Field = Field { fromField :: [[Maybe (Either Color Color)]] } -- Left is あなた
+newtype Field = Field { fromField :: [[Maybe (Bool, Color)]] } -- Left is あなた
 
 instance P.ToElem Field where
   toElem (Field xss) = P.forElems "table#field" $
     mappend P.clear $
-      mconcat $ map (P.tr . mconcat . map showCard) xss
+      mconcat $ map (P.tr . mconcat . map showPoint) xss
     where
-      showCard mbcard = case mbcard of
+      showPoint mbcard = case mbcard of
         Nothing -> P.td ""
         Just card -> case card of
-          Left a  -> (P.td $ show a) `P.attr` P.atr "class" "your-card"
-          Right b -> (P.td $ show b) `P.attr` P.atr "class" "computers-card"
+          (True, a)  -> (P.td $ show a) `P.attr` P.atr "class" "your-card"
+          (False, b) -> (P.td $ show b) `P.attr` P.atr "class" "computers-card"
 
 data Phase =
   Draw
@@ -92,7 +92,7 @@ selectSbjOfMv i j = phase .~ Move (i, j)
 
 move :: Int -> Int -> Game -> Game
 move i j game = case game ^. phase of
-  Move (x, y) -> 
+  Move (x, y) ->
     game
       & field . (lens fromField $ \(Field p) x -> Field x) . (ix i) . (ix j) .~ ((game ^. field & fromField) !! x !! y)
       & field . (lens fromField $ \(Field p) x -> Field x) . (ix x) . (ix j) .~ Nothing
@@ -102,7 +102,7 @@ move i j game = case game ^. phase of
 delByIx :: Int -> [a] -> [a]
 delByIx i xs = (take i xs) ++ (drop (i+1) xs)
 
-summonableZone :: Lens' Field [Maybe (Either Color Color)]
+summonableZone :: Lens' Field [Maybe (Bool, Color)]
 summonableZone = lens (last.fromField) $ \(Field p) x -> Field $ (init p) ++ [x]
 
 ix :: Int -> Lens' [a] a
@@ -116,7 +116,7 @@ summon for game = let theHand = game ^. turnPlayer . hand in
         then
           game
             & turnPlayer . hand %~ delByIx objOfSummon
-            & field . summonableZone . (ix for) .~ (Just $ (game^.turnPlayer)&markInField $ fromJust $ fromCard $ theHand!!objOfSummon)
+            & field . summonableZone . (ix for) .~ (Just $ (game^.areYouTurnPlayer, fromJust $ fromCard $ theHand!!objOfSummon))
             & (if 0 == (cost $ fromJust $ fromCard $ theHand!!objOfSummon)
               then phase .~ End
               else phase .~ Sacrifice (cost $ fromJust $ fromCard $ theHand!!objOfSummon) [])
@@ -178,8 +178,8 @@ initGame :: RandomGen g => g -> g -> Game
 initGame g h = 
   Game {
     _players =
-      (initialDraw "あなた" "yours" show Left $ initDeck g,
-        initialDraw "コンピュータ" "computers" (const "?") Right $ initDeck h)
+      (initialDraw "あなた" "yours" show $ initDeck g,
+        initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
     , _areYouTurnPlayer = True
     , _phase = Draw
     , _field = Field $ replicate 5 (replicate 3 Nothing)
