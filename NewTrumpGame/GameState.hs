@@ -72,8 +72,8 @@ turnPlayer = lens getting setting
     setting game p = players . (if game ^. areYouTurnPlayer then _1 else _2) .~ p $ game
 
 selectObjOfSummon :: Int -> Game -> Game
-selectObjOfSummon i game = let theHand = game ^. turnPlayer . hand in
-  if isColored $ theHand !! i
+selectObjOfSummon i game = 
+  if isColored $ game ^. turnPlayer . hand . (ix i)
     then phase .~ Summon i $ game
     else game
 
