@@ -13,8 +13,17 @@ body {
   text-align: center;
   border: 1px solid #b9b9b9; }
 
-#field td:hover {
+#field td.summonable-zone {
   background-color: #ffeeee; }
+
+#field td.summonable-zone:hover {
+  background-color: #ffdddd; }
+
+#field td.your-card {
+  color: #ff0000; }
+
+#field td.computers-card {
+  color: #00ff00; }
 
 ol.hand {
   list-style: none; }
@@ -24,10 +33,10 @@ ol.hand li {
   margin: 0 5px;
   font-size: x-large; }
 
-#yours ol.hand li#selected {
+#yours ol.hand li#obj-of-summon {
   color: #ff0000; }
 
-#yours ol.hand li#selected:hover {
+#yours ol.hand li#obj-of-summon:hover {
   color: #dd0000; }
 
 #yours ol.hand li.sacrifice {
@@ -36,7 +45,10 @@ ol.hand li {
 #yours ol.hand li.sacrifice:hover {
   color: #0000aa; }
 
-#yours ol.hand li:hover {
+#yours ol.hand li.selectable-hand {
+  color: #447744; }
+
+#yours ol.hand li.selectable-hand:hover {
   color: #88ff88; }
 
 /*# sourceMappingURL=new-trump-game.css.map */
