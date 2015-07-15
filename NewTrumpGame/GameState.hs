@@ -29,7 +29,7 @@ instance P.ToElem Field where
 
 data Phase =
   Draw
-  | Hand
+  | Main
   | Move
     Int -- subject of moving
   | Sacrifice
@@ -43,7 +43,7 @@ data Phase =
 instance Show Phase where
   show p = case p of
     Draw          -> "ドロー"
-    Hand          -> "手札を選択"
+    Main          -> "手札を選択"
     Move      _   -> "移動する位置を選択"
     Sacrifice _ _ -> "生贄を選択"
     Summon    _   -> "召喚する位置を選択"
