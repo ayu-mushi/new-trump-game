@@ -10,7 +10,7 @@ import System.Random.Shuffle (shuffle')
 import System.Random (RandomGen)
 import Data.Maybe (isJust)
 
-newtype Color = Color { unColor :: Int }
+newtype Color = Color { unColor :: Int } deriving Eq
 
 instance Show Color where
   show (Color 1)  = "A"
@@ -18,6 +18,9 @@ instance Show Color where
   show (Color 12) = "Q"
   show (Color 13) = "K"
   show (Color i)  = show i
+
+instance Ord Color where
+  compare (Color x) (Color y) = compare x y
 
 newtype Card = Card { fromCard :: Maybe Color }
 
