@@ -6,7 +6,7 @@ module NewTrumpGame.Cards
     initDeck) where
 import System.Random.Shuffle (shuffle')
 import System.Random (RandomGen)
-import Data.Maybe (isNothing)
+import Data.Maybe (isJust)
 
 newtype Card = Card { fromCard :: Maybe Int }
 
@@ -19,7 +19,7 @@ instance Show Card where
   show (Card (Just i))  = show i
 
 isColored :: Card -> Bool
-isColored = isNothing . fromCard
+isColored = isJust . fromCard
 
 energy :: Card -> Int
 energy (Card Nothing) = 2
