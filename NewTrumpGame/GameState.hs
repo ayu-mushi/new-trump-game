@@ -84,7 +84,7 @@ selectSacrifice :: Int -> [Int] -> Int -> Game -> Game
 selectSacrifice costOfObjOfSummon sacrifices i game = let theHand = game ^. turnPlayer . hand in
   if costOfObjOfSummon > (foldr (+) 0 $ map (energy . (theHand!!)) $ i:sacrifices)
     then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
-    else phase .~ End $ turnPlayer . hand %~ (foldl (.) id $ map delByIx $ insert i sacrifices) $ game
+    else phase .~ End $ turnPlayer . hand %~ (foldr (.) id $ map delByIx $ insert i sacrifices) $ game
 
 selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j = phase .~ Move (i, j)
