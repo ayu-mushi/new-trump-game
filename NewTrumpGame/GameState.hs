@@ -73,9 +73,7 @@ turnPlayer = lens getting setting
 selectObjOfSummon :: Int -> Game -> Game
 selectObjOfSummon i game = let yourHand = game ^. players . _1 . hand in
   if isColored $ yourHand !! i
-    then if 0 == (cost $ fromJust $ fromCard $ yourHand !! i)
-      then phase .~ Summon i $ game
-      else phase .~ Sacrifice i [] $ game
+    then phase .~ Summon i $ game
     else game
 
 selectSacrifice :: Int -> Game -> Game
@@ -150,6 +148,6 @@ initGame g h =
       (initialDraw "あなた" "yours" show $ initDeck g,
         initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
     , _areYouTurnPlayer = True
-    , _phase = Summon 2
+    , _phase = Draw
     , _field = Field $ replicate 5 (replicate 3 Nothing)
   }
