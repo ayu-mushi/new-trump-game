@@ -3,7 +3,8 @@ module NewTrumpGame.Cards
     isColored,
     energy,
     cost,
-    initDeck) where
+    initDeck,
+    motionScope) where
 import System.Random.Shuffle (shuffle')
 import System.Random (RandomGen)
 import Data.Maybe (isJust)
@@ -31,3 +32,6 @@ cost i = if i > 10 then 2 else 0
 initDeck :: RandomGen g => g -> [Card]
 initDeck g = shuffle' allCards (length allCards) g
   where allCards = concat $ replicate 4 $ map Card $ Nothing : (map Just [1..13])
+
+motionScope :: Int -> [(Int, Int)]
+motionScope card = [(0, -1)]
