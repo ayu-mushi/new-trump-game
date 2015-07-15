@@ -71,18 +71,18 @@ turnPlayer = lens getting setting
     setting game p = players . (if game ^. areYouTurnPlayer then _1 else _2) .~ p $ game
 
 selectObjOfSummon :: Int -> Game -> Game
-selectObjOfSummon i game = let yourHand = game ^. players . _1 . hand in
-  if isColored $ yourHand !! i
+selectObjOfSummon i game = let theHand = game ^. turnPlayer . hand in
+  if isColored $ theHand !! i
     then phase .~ Summon i $ game
     else game
 
 selectSacrifice :: Int -> Game -> Game
-selectSacrifice i game = let yourHand = game ^. players . _1 . hand in
+selectSacrifice i game = let theHand = game ^. turnPlayer . hand in
   case game ^. phase of
     Sacrifice costOfObjOfSummon sacrifices ->
-      if costOfObjOfSummon < (foldr (+) 0 $ map (energy . (yourHand!!)) $ i:sacrifices)
+      if costOfObjOfSummon < (foldr (+) 0 $ map (energy . (theHand!!)) $ i:sacrifices)
         then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
-        else phase .~ End $ players._1.hand %~ (foldr (.) id $ map delByIx sacrifices) $ game
+        else phase .~ End $ turnPlayer.hand %~ (foldr (.) id $ map delByIx sacrifices) $ game
     _ ->
       error "You can select sacrifice if and only if it is sacrifice phase and is your turn"
 
@@ -96,25 +96,25 @@ ix :: Int -> Lens' [a] a
 ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
 
 summon :: Int -> Game -> Game
-summon for game = let yourHand = game ^. players . _1 . hand in
+summon for game = let theHand = game ^. turnPlayer . hand in
   case game ^. phase of
     Summon objOfSummon ->
-      if (isNothing $ (last $ fromField $ game ^. field) !! for) && ((cost $ fromJust $ fromCard $ yourHand!!objOfSummon) <= (foldr (+) 0 $ map energy $ yourHand))
+      if (isNothing $ (last $ fromField $ game ^. field) !! for) && ((cost $ fromJust $ fromCard $ theHand!!objOfSummon) <= (foldr (+) 0 $ map energy $ theHand))
         then
           game
-            & players . _1 . hand %~ delByIx objOfSummon
-            & field . summonableZone . (ix for) .~ (Just $ Left $ yourHand!!objOfSummon)
-            & (if 0 == (cost $ fromJust $ fromCard $ yourHand!!objOfSummon)
+            & turnPlayer . hand %~ delByIx objOfSummon
+            & field . summonableZone . (ix for) .~ (Just $ (game^.turnPlayer)&markInField $ theHand!!objOfSummon)
+            & (if 0 == (cost $ fromJust $ fromCard $ theHand!!objOfSummon)
               then phase .~ End
-              else phase .~ Sacrifice (cost $ fromJust $ fromCard $ yourHand!!objOfSummon) [])
+              else phase .~ Sacrifice (cost $ fromJust $ fromCard $ theHand!!objOfSummon) [])
         else 
           error "it is a havitant, previously"
     _ -> error "You can select summon zone if and only if it is summon phase and is your turn"
 
-draw :: Lens' (Player, Player) Player -> Game -> Game
-draw which game = let get (a:newDeck) = Just a; get _ = Nothing in
-  case get $ game ^. players . which . deck of
-    Just card -> game & players . which . hand %~ (card:) & players . which . deck %~ tail & phase .~ Main
+draw :: Game -> Game
+draw game = let get (a:newDeck) = Just a; get _ = Nothing in
+  case get $ game ^. turnPlayer . deck of
+    Just card -> game & turnPlayer . hand %~ (card:) & turnPlayer . deck %~ tail & phase .~ Main
     Nothing   -> game
 
 instance P.ToElem Game where
