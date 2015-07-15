@@ -101,8 +101,8 @@ cell i j = (lens fromField (\(Field xss) yss -> Field yss)) . (ix i) . (ix j)
 move :: Int -> Int -> Int -> Int -> Game -> Game
 move x y i j game = 
   game
-    & field . (lens fromField $ \(Field p) x -> Field x) . (ix i) . (ix j) .~ ((game ^. field & fromField) !! x !! y)
-    & field . (lens fromField $ \(Field p) x -> Field x) . (ix x) . (ix j) .~ Nothing
+    & field . cell i j .~ (game ^. field . cell x y)
+    & field . cell x y .~ Nothing
 
 summon :: Int -> Int -> Color -> Game -> Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
