@@ -16,7 +16,7 @@ import Data.Maybe (isNothing, fromJust)
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
 
-newtype Field = Field { fromField :: [[Maybe Card]] }
+newtype Field = Field { fromField :: [[Maybe (Either Card Card)]] } -- Left is あなた
 
 instance P.ToElem Field where
   toElem (Field xss) = P.forElems "table#field" $
@@ -25,7 +25,9 @@ instance P.ToElem Field where
     where
       showMaybeCard mbcard = case mbcard of
         Nothing -> ""
-        Just card -> show card
+        Just card -> case card of
+          Left a -> show a
+          Right b -> show b
 
 data Phase =
   Draw
@@ -89,7 +91,7 @@ selectSacrifice i game = let yourHand = game ^. players . _1 . hand in
 delByIx :: Int -> [a] -> [a]
 delByIx i xs = (take i xs) ++ (drop (i+1) xs)
 
-summonableZone :: Lens' Field [Maybe Card]
+summonableZone :: Lens' Field [Maybe (Either Card Card)]
 summonableZone = lens (last.fromField) $ \(Field p) x -> Field $ (init p) ++ [x]
 
 ix :: Int -> Lens' [a] a
@@ -103,7 +105,7 @@ summon for game = let yourHand = game ^. players . _1 . hand in
         then
           game
             & players . _1 . hand %~ delByIx objOfSummon
-            & field . summonableZone . (ix for) .~ (Just $ yourHand!!objOfSummon)
+            & field . summonableZone . (ix for) .~ (Just $ Left $ yourHand!!objOfSummon)
             & phase .~ Sacrifice (cost $ fromJust $ fromCard $ yourHand!!objOfSummon) []
         else 
           error "it is a havitant, previously"
