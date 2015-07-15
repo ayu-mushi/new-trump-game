@@ -125,10 +125,18 @@ instance P.ToElem Game where
         P.toElem $ "-- " ++ (game ^. turnPlayer & playerName) ++ "の番です、" ++ (show $ game ^. phase)
    ,uncurry mappend $ both %~ P.toElem $ game ^. players
    ,case game ^. phase of
+      Main ->
+        P.Perch $ \e -> do
+          handsLis <- elemsByQS e "#yours ol.hand li"
+          let isSelectable card = (isColored card) && ((cost $ fromJust $ fromCard $ card)<=(foldl (+) (0-energy card) $ map energy $ game^.players._1.hand))
+          forM_ (zip handsLis $ map isSelectable $ game ^. players . _1 ^. hand) $
+            \(eachLi, isItSelectable) -> when isItSelectable $ setAttr eachLi "class" "selectable-hand"
+          return e
       Sacrifice costOfObjOfSummon objOfSacr ->
         P.Perch $ \e -> do
           handsLis <- elemsByQS e "#yours ol.hand li"
           mapM_ (setAttr `flip` "class" `flip` "sacrifice") $ map (handsLis !!) objOfSacr
+          forM_ handsLis $ setAttr `flip` "class" `flip` "selectable-hand" 
           return e
       Summon objOfSummon ->
         P.Perch $ \e -> do
