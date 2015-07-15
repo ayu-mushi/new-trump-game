@@ -1,6 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 module NewTrumpGame.GameState
-  (initGame, Game, players, draw, summon, selectSacrifice, selectObjOfSummon) where
+  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
@@ -27,7 +27,7 @@ instance P.ToElem Field where
         Nothing -> P.td ""
         Just card -> case card of
           (True, a)  -> (P.td $ show a) `P.attr` P.atr "class" "your-card"
-          (False, b) -> (P.td $ show b) `P.attr` P.atr "class" "computers-card"
+          (False, a) -> (P.td $ show a) `P.attr` P.atr "class" "computers-card"
 
 data Phase =
   Draw
@@ -77,30 +77,23 @@ selectObjOfSummon i game = let theHand = game ^. turnPlayer . hand in
     then phase .~ Summon i $ game
     else game
 
-selectSacrifice :: Int -> Game -> Game
-selectSacrifice i game = let theHand = game ^. turnPlayer . hand in
-  case game ^. phase of
-    Sacrifice costOfObjOfSummon sacrifices ->
-      if costOfObjOfSummon < (foldr (+) 0 $ map (energy . (theHand!!)) $ i:sacrifices)
-        then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
-        else phase .~ End $ turnPlayer.hand %~ (foldr (.) id $ map delByIx sacrifices) $ game
-    _ ->
-      error "You can select sacrifice if and only if it is sacrifice phase and is your turn"
+delByIx :: Int -> [a] -> [a]
+delByIx i xs = (take i xs) ++ (drop (i+1) xs)
+
+selectSacrifice :: Int -> [Int] -> Int -> Game -> Game
+selectSacrifice costOfObjOfSummon sacrifices i game = let theHand = game ^. turnPlayer . hand in
+  if costOfObjOfSummon > (foldr (+) 0 $ map (energy . (theHand!!)) $ i:sacrifices)
+    then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
+    else phase .~ End $ turnPlayer . hand %~ (foldl (.) id $ map delByIx $ insert i sacrifices) $ game
 
 selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j = phase .~ Move (i, j)
 
-move :: Int -> Int -> Game -> Game
-move i j game = case game ^. phase of
-  Move (x, y) ->
-    game
-      & field . (lens fromField $ \(Field p) x -> Field x) . (ix i) . (ix j) .~ ((game ^. field & fromField) !! x !! y)
-      & field . (lens fromField $ \(Field p) x -> Field x) . (ix x) . (ix j) .~ Nothing
-  _ ->
-    error "You can move card if and only if it is move phase and your turn"
-
-delByIx :: Int -> [a] -> [a]
-delByIx i xs = (take i xs) ++ (drop (i+1) xs)
+move :: Int -> Int -> Int -> Int -> Game -> Game
+move x y i j game = 
+  game
+    & field . (lens fromField $ \(Field p) x -> Field x) . (ix i) . (ix j) .~ ((game ^. field & fromField) !! x !! y)
+    & field . (lens fromField $ \(Field p) x -> Field x) . (ix x) . (ix j) .~ Nothing
 
 summonableZone :: Lens' Field [Maybe (Bool, Color)]
 summonableZone = lens (last.fromField) $ \(Field p) x -> Field $ (init p) ++ [x]
@@ -108,35 +101,20 @@ summonableZone = lens (last.fromField) $ \(Field p) x -> Field $ (init p) ++ [x]
 ix :: Int -> Lens' [a] a
 ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
 
-summon :: Int -> Game -> Game
-summon for game = let theHand = game ^. turnPlayer . hand in
-  case game ^. phase of
-    Summon objOfSummon ->
-      if (isNothing $ (last $ fromField $ game ^. field) !! for) && ((cost $ fromJust $ fromCard $ theHand!!objOfSummon) <= (foldr (+) 0 $ map energy $ theHand))
-        then
-          game
-            & turnPlayer . hand %~ delByIx objOfSummon
-            & field . summonableZone . (ix for) .~ (Just $ (game^.areYouTurnPlayer, fromJust $ fromCard $ theHand!!objOfSummon))
-            & (if 0 == (cost $ fromJust $ fromCard $ theHand!!objOfSummon)
-              then phase .~ End
-              else phase .~ Sacrifice (cost $ fromJust $ fromCard $ theHand!!objOfSummon) [])
-        else 
-          error "it is a havitant, previously"
-    _ -> error "You can select summon zone if and only if it is summon phase and is your turn"
+summon :: Int -> Int -> Color -> Game -> Game
+summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
+  game
+    & turnPlayer . hand %~ delByIx objOfSummon
+    & field . summonableZone . (ix for) .~ (Just $ (game^.areYouTurnPlayer, color))
+    & (if 0 == (cost $ color)
+      then phase .~ End
+      else phase .~ Sacrifice (cost color) [])
 
 draw :: Game -> Game
 draw game = let get (a:newDeck) = Just a; get _ = Nothing in
   case get $ game ^. turnPlayer . deck of
     Just card -> game & turnPlayer . hand %~ (card:) & turnPlayer . deck %~ tail & phase .~ Main
     Nothing   -> game & phase .~ Finish Nothing
-
-data Play = PlDraw | PlSelectObjOfSummon Int | PlSelectSacrifice Int | PlSummon Int
-run :: Play -> Game -> Game
-run play = case play of
-  PlDraw                -> draw
-  PlSelectObjOfSummon i -> selectObjOfSummon i
-  PlSelectSacrifice   i -> selectSacrifice i
-  PlSummon            i -> summon i
 
 instance P.ToElem Game where
   toElem game = mconcat [

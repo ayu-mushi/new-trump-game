@@ -5,7 +5,8 @@ module NewTrumpGame.Cards
     energy,
     cost,
     initDeck,
-    motionScope) where
+    motionScope,
+    ifWhite) where
 import System.Random.Shuffle (shuffle')
 import System.Random (RandomGen)
 import Data.Maybe (isJust)
@@ -44,3 +45,8 @@ initDeck g = shuffle' allCards (length allCards) g
 
 motionScope :: Color -> [(Int, Int)]
 motionScope card = [(0, -1)]
+
+ifWhite :: a -> (Color -> a) -> Card -> a
+ifWhite a f card = case card of
+  Card (Just color) -> f color
+  Card Nothing -> a

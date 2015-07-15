@@ -5,6 +5,7 @@ import Haste.Foreign (ffi)
 import Control.Concurrent
 import qualified Haste.Perch as P
 import Control.Monad (void)
+import Data.Monoid ((<>))
 import Lens.Family2
 import Lens.Family2.Stock
 import System.Random (mkStdGen)
@@ -32,50 +33,75 @@ prevElem el = do
     isNull = ffi $ toJSString "(function(x) {return x === null})"
     isElementNode = ffi $ toJSString "(function(node) {return node.nodeType === 1})"
 
-indexEl :: (a -> a) -> a -> Elem -> IO a
-indexEl s z tag = do
+indexEl :: Int -> Elem -> IO Int
+indexEl z tag = do
   tag' <- prevElem tag
   case tag' of
     Nothing -> return z
-    Just el -> indexEl s (s z) el
+    Just el -> indexEl (succ z) el
 
-indexOfParentEl :: (a -> a) -> a -> Elem -> IO a
-indexOfParentEl s z = (>>=indexEl s z) . P.parent
+indexOfParentEl :: Elem -> IO Int
+indexOfParentEl = (>>=indexEl 0) . P.parent
 
-forTargetWhenEvt :: Elem -> Event IO a -> (Elem -> IO ()) -> IO ()
-forTargetWhenEvt el event action = void $ jsAddEventListener el (evtName event) action
+forTargetWhenEvt :: Event IO a -> (Elem -> IO ()) -> P.Perch
+forTargetWhenEvt event action = P.Perch $ \e -> do {jsAddEventListener e (evtName event) action; return e}
   where
     jsAddEventListener :: Elem -> String -> (Elem -> IO ()) -> IO ()
     jsAddEventListener = ffi $ toJSString "(function(node, evtName, f){ node.addEventListener(evtName, (function(e){ f(e.target) }))})"
 
-forIndexOfClickedLiElem :: (a -> a) -> a -> (a -> IO ()) -> Elem -> IO ()
-forIndexOfClickedLiElem s z f el = forTargetWhenEvt el OnClick $ 
+forIndexOfClickedLiElem :: (Int -> IO ()) -> P.Perch
+forIndexOfClickedLiElem f = forTargetWhenEvt OnClick $ 
   \el -> do
     tn <- tagName el
     if tn == "LI"
-      then indexEl s z el >>= f
+      then indexEl 0 el >>= f
       else return ()
 
-forIndexOfClickedTdElem :: (a -> a) -> a -> (b -> b) -> b -> (a -> b -> IO ()) -> Elem -> IO ()
-forIndexOfClickedTdElem as az bs bz f el = forTargetWhenEvt el OnClick $
+forIndexOfClickedTdElem :: (Int -> Int -> IO ()) -> P.Perch
+forIndexOfClickedTdElem f = forTargetWhenEvt OnClick $
   \el -> do
     tn <- tagName el
     if tn == "TD"
       then do
-        x <- indexOfParentEl as az el
-        y <- indexEl bs bz el
+        x <- indexOfParentEl el
+        y <- indexEl 0 el
         f x y
       else
         return ()
+
+whenClickField :: MVar Game -> P.Perch
+whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> void $ do
+  modifyMVar_ reftoGame $ \game -> return $
+    case game ^. phase of
+      Main               -> selectSbjOfMv i j game
+      Move (x, y)        -> move x y i j game
+      Summon objOfSummon -> ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. players . _1 . hand) !! objOfSummon
+      _                  -> game
+  withMVar reftoGame $ \game -> do
+    body <- P.getBody
+    P.build (P.toElem game) body
+  return ()
+
+whenClickHand :: MVar Game -> P.Perch
+whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
+  modifyMVar_ reftoGame $ \game -> return $ 
+    case game ^. phase of
+      Main -> selectObjOfSummon i game
+      Sacrifice costOfObjOfSummon sacrifices -> selectSacrifice costOfObjOfSummon sacrifices i game
+      _ -> game
+  withMVar reftoGame $ \game -> do
+    body <- P.getBody
+    P.build (P.toElem game) body
+  return ()
 
 main :: IO ()
 main = do
   g <- newStdGen
   h <- newStdGen
-  let game = initGame g h
+  let game = draw $ initGame g h
   reftoGame <- newMVar game
   body <- P.getBody
-  P.build (P.toElem game) body
+  P.build (whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game) body
   return ()
   
   where
