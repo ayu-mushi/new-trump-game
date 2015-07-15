@@ -122,7 +122,7 @@ instance P.ToElem Game where
     P.toElem $ game ^. field
    ,P.forElems "#status" $
       mappend P.clear $
-        P.toElem $ "-- " ++ (game ^. turnPlayer . playerName) ++ "の番です、" ++ (show $ game ^. phase)
+        P.toElem $ "-- " ++ (game ^. turnPlayer & playerName) ++ "の番です、" ++ (show $ game ^. phase)
    ,uncurry mappend $ both %~ P.toElem $ game ^. players
    ,case game ^. phase of
       Sacrifice costOfObjOfSummon objOfSacr ->
@@ -147,8 +147,8 @@ initGame :: RandomGen g => g -> g -> Game
 initGame g h = 
   Game {
     _players =
-      (initialDraw "あなた" "yours" show $ initDeck g,
-        initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
+      (initialDraw "あなた" "yours" show Left $ initDeck g,
+        initialDraw "コンピュータ" "computers" (const "?") Right $ initDeck h)
     , _areYouTurnPlayer = True
     , _phase = Draw
     , _field = Field $ replicate 5 (replicate 3 Nothing)
