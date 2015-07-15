@@ -104,7 +104,9 @@ summon for game = let yourHand = game ^. players . _1 . hand in
           game
             & players . _1 . hand %~ delByIx objOfSummon
             & field . summonableZone . (ix for) .~ (Just $ Left $ yourHand!!objOfSummon)
-            & phase .~ Sacrifice (cost $ fromJust $ fromCard $ yourHand!!objOfSummon) []
+            & (if 0 == (cost $ fromJust $ fromCard $ yourHand!!objOfSummon)
+              then phase .~ End
+              else phase .~ Sacrifice (cost $ fromJust $ fromCard $ yourHand!!objOfSummon) [])
         else 
           error "it is a havitant, previously"
     _ -> error "You can select summon zone if and only if it is summon phase and is your turn"
