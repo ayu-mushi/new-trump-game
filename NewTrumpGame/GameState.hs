@@ -111,8 +111,8 @@ summon for game = let yourHand = game ^. players . _1 . hand in
           error "it is a havitant, previously"
     _ -> error "You can select summon zone if and only if it is summon phase and is your turn"
 
-draw :: Game -> Lens' (Player, Player) Player -> Game
-draw game which = let get (a:newDeck) = Just a; get _ = Nothing in
+draw :: Lens' (Player, Player) Player -> Game -> Game
+draw which game = let get (a:newDeck) = Just a; get _ = Nothing in
   case get $ game ^. players . which . deck of
     Just card -> game & players . which . hand %~ (card:) & players . which . deck %~ tail
     Nothing   -> game
