@@ -139,8 +139,8 @@ instance P.ToElem Game where
       Sacrifice costOfObjOfSummon objOfSacr ->
         P.Perch $ \e -> do
           handsLis <- elemsByQS e "#yours ol.hand li"
-          mapM_ (setAttr `flip` "class" `flip` "sacrifice") $ map (handsLis !!) objOfSacr
           forM_ handsLis $ setAttr `flip` "class" `flip` "selectable-hand" 
+          mapM_ (setAttr `flip` "class" `flip` "sacrifice") $ map (handsLis !!) objOfSacr
           return e
       Summon objOfSummon ->
         P.Perch $ \e -> do
