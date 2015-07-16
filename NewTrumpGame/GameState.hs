@@ -9,6 +9,7 @@ import Haste.DOM (elemsByQS, setAttr)
 import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2, both)
+import System.Random.Shuffle (shuffle')
 import System.Random (RandomGen)
 import Control.Monad (forM_, when)
 import Data.Maybe (isNothing, fromJust)
@@ -97,6 +98,9 @@ ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
 
 cell :: Int -> Int -> Lens' Field (Maybe (Bool, Color))
 cell i j = (lens fromField (\(Field xss) yss -> Field yss)) . (ix i) . (ix j)
+
+addToDeck :: RandomGen g => g -> Card -> Player -> Player
+addToDeck g card = deck %~ (card:) . (\x -> shuffle' x (length x) g)
 
 move :: Int -> Int -> Int -> Int -> Game -> Game
 move x y i j game = 
