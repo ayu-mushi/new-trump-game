@@ -25,7 +25,7 @@ Library
     --other-modules: 
     exposed-modules: NewTrumpGame.Cards, NewTrumpGame.GameState, NewTrumpGame.Player
 
-    build-depends: base ==4.*, haste-lib >=0.1, transformers, haste-perch, random-shuffle, mtl, lens-family
+    build-depends: base ==4.*, haste-lib >=0.1, transformers, haste-perch, random-shuffle, mtl, lens-family, random
 
     ghc-options: -Wall
 
