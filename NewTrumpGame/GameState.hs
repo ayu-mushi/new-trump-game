@@ -27,8 +27,7 @@ instance P.ToElem Field where
       showPoint mbcard = case mbcard of
         Nothing -> P.td ""
         Just card -> case card of
-          (True, a)  -> (P.td $ show a) `P.attr` P.atr "class" "your-card"
-          (False, a) -> (P.td $ show a) `P.attr` P.atr "class" "computers-card"
+          (p, a)  -> (P.td $ show a) `P.attr` (P.atr "class" $ if p then "your-card" else "computers-card")
 
 data Phase =
   Draw
