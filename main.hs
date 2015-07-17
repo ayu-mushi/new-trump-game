@@ -98,7 +98,8 @@ main :: IO ()
 main = do
   g <- newStdGen
   h <- newStdGen
-  let game = draw $ initGame g h
+  i <- newStdGen
+  let game = draw $ initGame g h i
   reftoGame <- newMVar game
   body <- P.getBody
   P.build (whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game) body

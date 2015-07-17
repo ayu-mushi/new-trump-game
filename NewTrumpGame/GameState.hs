@@ -10,7 +10,7 @@ import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2, both)
 import System.Random.Shuffle (shuffle')
-import System.Random (RandomGen)
+import System.Random (RandomGen, StdGen)
 import Control.Monad (forM_, when)
 import Data.Maybe (isNothing, fromJust)
 
@@ -59,7 +59,8 @@ data Game = Game {
   _players :: (Player, Player), -- (players ^. _1 . playerName) == "あなた"
   _areYouTurnPlayer :: Bool,
   _phase :: Phase,
-  _field :: Field
+  _field :: Field,
+  gen :: StdGen
   }
 players :: Lens' Game (Player, Player); players = lens _players (\p x -> p { _players = x })
 areYouTurnPlayer :: Lens' Game Bool; areYouTurnPlayer = lens _areYouTurnPlayer $ \p x -> p { _areYouTurnPlayer = x }
@@ -159,8 +160,8 @@ instance P.ToElem Game where
         mempty
     ]
 
-initGame :: RandomGen g => g -> g -> Game
-initGame g h = 
+initGame :: RandomGen g => g -> g -> StdGen -> Game
+initGame g h i = 
   Game {
     _players =
       (initialDraw "あなた" "yours" show $ initDeck g,
@@ -168,4 +169,5 @@ initGame g h =
     , _areYouTurnPlayer = True
     , _phase = Draw
     , _field = Field $ replicate 5 (replicate 3 Nothing)
+    , gen = i
   }
