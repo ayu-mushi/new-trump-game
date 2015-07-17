@@ -10,7 +10,7 @@ import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2, both)
 import System.Random.Shuffle (shuffle')
-import System.Random (RandomGen, StdGen)
+import System.Random (RandomGen, StdGen, Random(random))
 import Control.Monad (forM_, when)
 import Data.Maybe (isNothing, fromJust)
 
@@ -99,8 +99,8 @@ ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
 cell :: Int -> Int -> Lens' Field (Maybe (Bool, Color))
 cell i j = (lens fromField (\(Field xss) yss -> Field yss)) . (ix i) . (ix j)
 
-addToDeck :: RandomGen g => g -> Card -> Player -> Player
-addToDeck g card = deck %~ (card:) . (\x -> shuffle' x (length x) g)
+addToDeck :: StdGen -> Card -> Player -> (Player, StdGen)
+addToDeck g card player = (player & deck %~ (card:) . (\x -> shuffle' x (length x) g), ((random::StdGen -> (Int, StdGen)) g)^._2)
 
 move :: Int -> Int -> Int -> Int -> Game -> Game
 move x y i j game = 
