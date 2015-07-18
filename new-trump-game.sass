@@ -1,25 +1,26 @@
 body
-  color: #490a3d
+  color: #4e454e
+  background-color: #040004
 
 #field
   border-collapse: collapse
   th
-    border: 1px solid #b9b9b9
+    border: 1px solid #4e454e
   td
     width: 50px
     height: 50px
     text-align: center
     font-size: x-large
-    border: 1px solid #b9b9b9
+    border: 1px solid #4e454e
     &.summonable-zone
-      background-color: #ffeeee
+      background-color: #14001b
       &:hover
-        background-color: #ffdddd
+        background-color: #1b000d
     &.your-card
-      color: #bd1550
+      color: #fa023c
     &.computers-card
       transform: rotate(180deg)
-      color: #00ff00
+      color: #c8ff00
 
 ol.hand
   list-style: none
@@ -31,14 +32,24 @@ ol.hand
 #yours ol.hand
   li
     &#obj-of-summon
-      color: #bd1550
+      color: #fa023c
       &:hover
-        color: #bd1550
+        color: #fa023c
     &.selectable-hand
-      color: #e97f02
+      color: #e100fd
       &:hover
-        color: #f8ca00
+        color: #ff00b3
     &.sacrifice
-      color: #bd1550
+      color: #fa023c
       &:hover
-        color: #bd1550
+        color: #fa023c
+a
+  &:link
+    color: #9900ff
+  &:visited
+    color: #ff00bb
+  &:hover
+    color: #de00ff
+
+hr
+  border: 1px solid #c8ff00
