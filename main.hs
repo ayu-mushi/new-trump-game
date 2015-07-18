@@ -83,18 +83,18 @@ whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j 
       Move (x, y)        -> move x y i j game
       Summon objOfSummon -> ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. players . _1 . hand) !! objOfSummon
       _                  -> game
-    refresh reftoGame
-    return ()
+  refresh reftoGame
+  return ()
 
 whenClickHand :: MVar Game -> P.Perch
 whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
   modifyMVar_ reftoGame $ \game -> return $
     case game ^. phase of
       Main -> case selectObjOfSummon i game of Just news -> news; Nothing -> game
-      Sacrifice costOfObjOfSummon sacrifices -> selectSacrifice costOfObjOfSummon sacrifices i game
+      Sacrifice costOfObjOfSummon sacrifices -> case selectSacrifice i game of Just news -> news; Nothing -> game
       _ -> game
-    refresh reftoGame
-    return ()
+  refresh reftoGame
+  return ()
 
 main :: IO ()
 main = do

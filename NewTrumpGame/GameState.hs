@@ -86,11 +86,14 @@ selectObjOfSummon i game = if sufficientForSummon (game ^. turnPlayer . hand . i
 delByIx :: Int -> [a] -> [a]
 delByIx i xs = (take i xs) ++ (drop (i+1) xs)
 
-selectSacrifice :: Int -> [Int] -> Int -> Game -> Game
-selectSacrifice costOfObjOfSummon sacrifices i game = let theHand = game ^. turnPlayer . hand in
-  if costOfObjOfSummon > (foldr (+) 0 $ map (energy . (theHand!!)) $ i:sacrifices)
-    then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
-    else phase .~ End $ turnPlayer . hand %~ (foldr (.) id $ map delByIx $ insert i sacrifices) $ game
+selectSacrifice :: Int -> Game -> Maybe Game
+selectSacrifice i game =
+  case game ^. phase of
+    Sacrifice costOfObjOfSummon sacrifices -> Just $
+      if costOfObjOfSummon > (foldr (+) 0 $ map (energy . ((game^.turnPlayer.hand)!!)) $ i:sacrifices)
+         then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
+         else phase .~ End $ turnPlayer . hand %~ (foldr (.) id $ map delByIx $ insert i sacrifices) $ game
+    _ -> Nothing
 
 selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j = phase .~ Move (i, j)
