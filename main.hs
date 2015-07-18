@@ -69,6 +69,12 @@ forIndexOfClickedTdElem f = forTargetWhenEvt OnClick $
       else
         return ()
 
+refresh :: MVar Game -> IO ()
+refresh reftoGame = void $
+  withMVar reftoGame $ \game -> do
+    body <- P.getBody
+    P.build (P.toElem game) body
+
 whenClickField :: MVar Game -> P.Perch
 whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> void $ do
   modifyMVar_ reftoGame $ \game -> return $
@@ -77,10 +83,8 @@ whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j 
       Move (x, y)        -> move x y i j game
       Summon objOfSummon -> ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. players . _1 . hand) !! objOfSummon
       _                  -> game
-  withMVar reftoGame $ \game -> do
-    body <- P.getBody
-    P.build (P.toElem game) body
-  return ()
+    refresh reftoGame
+    return ()
 
 whenClickHand :: MVar Game -> P.Perch
 whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
@@ -89,10 +93,8 @@ whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem 
       Main -> case selectObjOfSummon i game of Just news -> news; Nothing -> game
       Sacrifice costOfObjOfSummon sacrifices -> selectSacrifice costOfObjOfSummon sacrifices i game
       _ -> game
-  withMVar reftoGame $ \game -> do
-    body <- P.getBody
-    P.build (P.toElem game) body
-  return ()
+    refresh reftoGame
+    return ()
 
 main :: IO ()
 main = do
