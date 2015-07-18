@@ -50,7 +50,7 @@ forTargetWhenEvt event action = P.Perch $ \e -> do {jsAddEventListener e (evtNam
     jsAddEventListener = ffi $ toJSString "(function(node, evtName, f){ node.addEventListener(evtName, (function(e){ f(e.target) }))})"
 
 forIndexOfClickedLiElem :: (Int -> IO ()) -> P.Perch
-forIndexOfClickedLiElem f = forTargetWhenEvt OnClick $ 
+forIndexOfClickedLiElem f = forTargetWhenEvt OnClick $
   \el -> do
     tn <- tagName el
     if tn == "LI"
@@ -84,9 +84,9 @@ whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j 
 
 whenClickHand :: MVar Game -> P.Perch
 whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
-  modifyMVar_ reftoGame $ \game -> return $ 
+  modifyMVar_ reftoGame $ \game -> return $
     case game ^. phase of
-      Main -> selectObjOfSummon i game
+      Main -> case selectObjOfSummon i game of Just news -> news; Nothing -> game
       Sacrifice costOfObjOfSummon sacrifices -> selectSacrifice costOfObjOfSummon sacrifices i game
       _ -> game
   withMVar reftoGame $ \game -> do
@@ -104,6 +104,6 @@ main = do
   body <- P.getBody
   P.build (whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game) body
   return ()
-  
+
   where
     newStdGen = fmap mkStdGen $ ffi $ toJSString "(function(){ return Math.floor(Math.random() * Math.pow(2, 53)); })"

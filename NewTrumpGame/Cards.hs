@@ -2,6 +2,7 @@ module NewTrumpGame.Cards
   ( Card(fromCard),
     isColored,
     Color,
+    energyOfColored,
     energy,
     cost,
     initDeck,
@@ -32,9 +33,12 @@ instance Show Card where
 isColored :: Card -> Bool
 isColored = isJust . fromCard
 
+energyOfColored :: Color -> Int
+energyOfColored _ = 1
+
 energy :: Card -> Int
 energy (Card Nothing) = 2
-energy _              = 1
+energy (Card (Just color)) = energyOfColored color
 
 cost :: Color -> Int
 cost (Color i) = if i > 10 then 2 else 0

@@ -37,7 +37,7 @@ data Phase =
   | Sacrifice
     Int -- cost of object of summon
     [Int] -- sucrifices
-  | Summon 
+  | Summon
     Int -- object of summon
   | End
   | Finish (Maybe Bool)
@@ -73,11 +73,15 @@ turnPlayer = lens getting setting
     getting game = game ^. players . (if game ^. areYouTurnPlayer then _1 else _2)
     setting game p = players . (if game ^. areYouTurnPlayer then _1 else _2) .~ p $ game
 
-selectObjOfSummon :: Int -> Game -> Game
-selectObjOfSummon i game = 
-  if isColored $ game ^. turnPlayer . hand . (ix i)
-    then phase .~ Summon i $ game
-    else game
+sufficientForSummon :: Card -> [Card] -> Bool
+sufficientForSummon card hand =
+  ifWhite False
+    (\color -> (cost $ color) <= (foldl (+) (0 - energyOfColored color) $ map energy $ hand)) $ card
+
+selectObjOfSummon :: Int -> Game -> Maybe Game
+selectObjOfSummon i game = if sufficientForSummon (game ^. turnPlayer . hand . ix i) $ game^.turnPlayer.hand
+  then Just $ phase .~ Summon i $ game
+  else Nothing
 
 delByIx :: Int -> [a] -> [a]
 delByIx i xs = (take i xs) ++ (drop (i+1) xs)
@@ -104,7 +108,7 @@ addToDeck :: StdGen -> Card -> Player -> (Player, StdGen)
 addToDeck g card player = (player & deck %~ (card:) . (\x -> shuffle' x (length x) g), ((random::StdGen -> (Int, StdGen)) g)^._2)
 
 move :: Int -> Int -> Int -> Int -> Game -> Game
-move x y i j game = 
+move x y i j game =
   game
     & field . cell i j .~ (game ^. field . cell x y)
     & field . cell x y .~ Nothing
@@ -144,7 +148,7 @@ instance P.ToElem Game where
       Sacrifice costOfObjOfSummon objOfSacr ->
         P.Perch $ \e -> do
           handsLis <- elemsByQS e "#yours ol.hand li"
-          forM_ handsLis $ setAttr `flip` "class" `flip` "selectable-hand" 
+          forM_ handsLis $ setAttr `flip` "class" `flip` "selectable-hand"
           mapM_ (setAttr `flip` "class" `flip` "sacrifice") $ map (handsLis !!) objOfSacr
           return e
       Summon objOfSummon ->
@@ -161,7 +165,7 @@ instance P.ToElem Game where
     ]
 
 initGame :: RandomGen g => g -> g -> StdGen -> Game
-initGame g h i = 
+initGame g h i =
   Game {
     _players =
       (initialDraw "あなた" "yours" show $ initDeck g,
