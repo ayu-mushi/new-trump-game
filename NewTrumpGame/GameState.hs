@@ -59,12 +59,13 @@ data Game = Game {
   _areYouTurnPlayer :: Bool,
   _phase :: Phase,
   _field :: Field,
-  gen :: StdGen
+  _gen :: StdGen
   }
 players :: Lens' Game (Player, Player); players = lens _players (\p x -> p { _players = x })
 areYouTurnPlayer :: Lens' Game Bool; areYouTurnPlayer = lens _areYouTurnPlayer $ \p x -> p { _areYouTurnPlayer = x }
 phase :: Lens' Game Phase; phase = lens _phase $ \p x -> p { _phase = x }
 field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
+gen :: Lens' Game StdGen; gen = lens _gen $ \p x -> p { _gen = x }
 
 turnPlayer :: Lens' Game Player
 turnPlayer = lens getting setting
@@ -168,5 +169,5 @@ initGame g h i =
     , _areYouTurnPlayer = True
     , _phase = Draw
     , _field = Field $ replicate 5 (replicate 3 Nothing)
-    , gen = i
+    , _gen = i
   }
