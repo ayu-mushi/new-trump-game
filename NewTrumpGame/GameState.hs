@@ -40,7 +40,7 @@ data Phase =
   | Summon
     Int -- object of summon
   | End
-  | Finish (Maybe Bool)
+  | Finish Bool
 
 instance Show Phase where
   show p = case p of
@@ -50,9 +50,8 @@ instance Show Phase where
     Sacrifice _ _ -> "生贄を選択"
     Summon    _   -> "召喚する位置を選択"
     End           -> "手番を交代"
-    Finish Nothing       -> "引き分け!!!!!!!!!!!!!"
-    Finish (Just True)   -> "あなたの勝ちです!"
-    Finish (Just False)  -> "コンピュータが勝ち!"
+    Finish True   -> "あなたの勝ちです!"
+    Finish False  -> "コンピュータが勝ち!"
 
 data Game = Game {
   _players :: (Player, Player), -- (players ^. _1 . playerName) == "あなた"
@@ -129,7 +128,7 @@ draw :: Game -> Game
 draw game = let get (a:newDeck) = Just a; get _ = Nothing in
   case get $ game ^. turnPlayer . deck of
     Just card -> game & turnPlayer . hand %~ (card:) & turnPlayer . deck %~ tail & phase .~ Main
-    Nothing   -> game & phase .~ Finish Nothing
+    Nothing   -> game & phase .~ (Finish $ game^.areYouTurnPlayer)
 
 instance P.ToElem Game where
   toElem game = mconcat [
