@@ -76,7 +76,7 @@ refresh reftoGame = void $
     P.build (P.toElem game) body
 
 whenClickField :: MVar Game -> P.Perch
-whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> void $ do
+whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
   modifyMVar_ reftoGame $ return . operateWithField i j
   refresh reftoGame
   return ()
