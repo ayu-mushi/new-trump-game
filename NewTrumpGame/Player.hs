@@ -1,5 +1,5 @@
 module NewTrumpGame.Player
-  (Player, initialDraw, playerName, hand, deck) where
+  (Player, initialDraw, playerName, hand, deck, playerId) where
 
 import Lens.Family2
 import Lens.Family2.Unchecked

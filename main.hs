@@ -1,11 +1,12 @@
 module Main (main) where
-import Haste (alert, Elem, toJSString, Event(OnClick), evtName)
+import Haste (alert, Elem, toJSString, Event(OnClick), evtName, setTimeout)
 import Haste.DOM (elemsByQS)
 import Haste.Foreign (ffi)
 import Control.Concurrent
 import qualified Haste.Perch as P
-import Control.Monad (void)
+import Control.Monad (void, when)
 import Data.Monoid ((<>))
+import Data.List (foldr1)
 import Lens.Family2
 import Lens.Family2.Stock
 import System.Random (mkStdGen)
@@ -75,16 +76,30 @@ refresh reftoGame = void $
     body <- P.getBody
     P.build (P.toElem game) body
 
+appendActWithTime :: IO () -> IO () -> IO ()
+appendActWithTime a b = a >> setTimeout 1000 b
+
+concatActWithTime :: IO () -> [IO ()] -> IO ()
+concatActWithTime = foldl appendActWithTime
+
+turnChange :: MVar Game -> IO ()
+turnChange reftoGame = concatActWithTime (return ()) [
+  (modifyMVar_ reftoGame $ return . (phase .~ Draw) . (areYouTurnPlayer %~ not)) >> refresh reftoGame,
+  (modifyMVar_ reftoGame $ return . draw) >> refresh reftoGame
+  ]
+
 whenClickField :: MVar Game -> P.Perch
 whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
   modifyMVar_ reftoGame $ return . operateWithField i j
   refresh reftoGame
+  withMVar reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame; _ -> return ()
   return ()
 
 whenClickHand :: MVar Game -> P.Perch
 whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
   modifyMVar_ reftoGame $ return . operateWithHand i
   refresh reftoGame
+  withMVar reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame; _ -> return ()
   return ()
 
 main :: IO ()

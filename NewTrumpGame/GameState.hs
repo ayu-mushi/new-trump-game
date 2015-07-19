@@ -93,8 +93,8 @@ selectSacrifice costOfObjOfSummon i game =
 selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j = phase .~ Move (i, j)
 
-summonableZone :: Lens' Field [Maybe (Bool, Color)]
-summonableZone = lens (last.fromField) $ \(Field p) x -> Field $ (init p) ++ [x]
+summonableZone :: Bool -> Lens' Field [Maybe (Bool, Color)]
+summonableZone areYourTurn = lens ((if areYourTurn then last else head) . fromField) $ \(Field p) x -> Field $ if areYourTurn then (init p) ++ [x] else x:(tail p)
 
 ix :: Int -> Lens' [a] a
 ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
@@ -115,7 +115,7 @@ summon :: Int -> Int -> Color -> Game -> Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
   game
     & turnPlayer . hand %~ delByIx objOfSummon
-    & field . summonableZone . (ix for) .~ (Just $ (game^.areYouTurnPlayer, color))
+    & field . summonableZone (game ^. areYouTurnPlayer) . (ix for) .~ (Just $ (game^.areYouTurnPlayer, color))
     & (if 0 == (cost $ color)
       then phase .~ End
       else phase .~ Sacrifice (cost color))
@@ -155,23 +155,23 @@ instance P.ToElem Game where
    ,case game ^. phase of
       Main ->
         P.Perch $ \e -> do
-          handsLis <- elemsByQS e "#yours ol.hand li"
+          handsLis <- elemsByQS e $ "#"++(game^.turnPlayer & playerId) ++ " ol.hand li"
           let isSelectable card = (isColored card) && ((cost $ fromJust $ fromCard $ card)<=(foldl (+) (0-energy card) $ map energy $ game^.players._1.hand))
           forM_ (zip handsLis $ map isSelectable $ game ^. players . _1 ^. hand) $
             \(eachLi, isItSelectable) -> when isItSelectable $ setAttr eachLi "class" "selectable-hand"
           return e
       Sacrifice costOfObjOfSummon ->
         P.Perch $ \e -> do
-          handsLis <- elemsByQS e "#yours ol.hand li"
+          handsLis <- elemsByQS e $ "#"++(game^.turnPlayer & playerId) ++ " ol.hand li"
           forM_ handsLis $ setAttr `flip` "class" `flip` "selectable-hand"
           return e
       Summon objOfSummon ->
         P.Perch $ \e -> do
-          handsLis <- elemsByQS e "#yours ol.hand li"
+          handsLis <- elemsByQS e $ "#"++(game^.turnPlayer & playerId) ++ " ol.hand li"
           setAttr (handsLis !! objOfSummon) "id" "obj-of-summon"
           fieldTrs <- elemsByQS e "#field tr"
-          mostUnderTds <- elemsByQS (last fieldTrs) "td"
-          forM_ (zip mostUnderTds (map isNothing $ game ^. field . summonableZone)) $
+          summonTds <- elemsByQS ((if game ^. areYouTurnPlayer then last else head) fieldTrs) "td"
+          forM_ (zip summonTds (map isNothing $ game ^. field . (summonableZone $ game ^. areYouTurnPlayer))) $
             \(eachTd, isNotLived) -> when isNotLived $ setAttr eachTd "class" "summonable-zone"
           return e
       _ ->
