@@ -1,6 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 module NewTrumpGame.GameState
-  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand) where
+  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
@@ -135,6 +135,14 @@ operateWithHand i game =
     Sacrifice costOfObjOfSummon sacrifices ->
       selectSacrifice costOfObjOfSummon sacrifices i game
     _ -> game
+
+operateWithField :: Int -> Int -> Game -> Game
+operateWithField i j game =
+  case game ^. phase of
+    Main               -> selectSbjOfMv i j game
+    Move (x, y)        -> move x y i j game
+    Summon objOfSummon -> ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. players . _1 . hand) !! objOfSummon
+    _                  -> game
 
 instance P.ToElem Game where
   toElem game = mconcat [

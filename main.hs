@@ -77,12 +77,7 @@ refresh reftoGame = void $
 
 whenClickField :: MVar Game -> P.Perch
 whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> void $ do
-  modifyMVar_ reftoGame $ \game -> return $
-    case game ^. phase of
-      Main               -> selectSbjOfMv i j game
-      Move (x, y)        -> move x y i j game
-      Summon objOfSummon -> ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. players . _1 . hand) !! objOfSummon
-      _                  -> game
+  modifyMVar_ reftoGame $ return . operateWithField i j
   refresh reftoGame
   return ()
 
