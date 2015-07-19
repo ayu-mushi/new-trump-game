@@ -35,8 +35,7 @@ data Phase =
   | Move
     (Int, Int) -- subject of moving
   | Sacrifice
-    Int -- cost of object of summon
-    [Int] -- sucrifices
+    Int -- rest cost of object of summon
   | Summon
     Int -- object of summon
   | End
@@ -47,7 +46,7 @@ instance Show Phase where
     Draw          -> "ドロー"
     Main          -> "行動を選択"
     Move      _   -> "移動する位置を選択"
-    Sacrifice cost sacs -> "生贄を選択: エネルギーがあと" ++ (show $ cost - (length sacs)) ++ "必要"
+    Sacrifice cost-> "生贄を選択: エネルギーがあと" ++ (show $ cost) ++ "必要"
     Summon    _   -> "召喚する位置を選択"
     End           -> "手番を交代"
     Finish True   -> "あなたの勝ちです!"
@@ -85,11 +84,11 @@ selectObjOfSummon i game = if sufficientForSummon (game ^. turnPlayer . hand . i
 delByIx :: Int -> [a] -> [a]
 delByIx i xs = (take i xs) ++ (drop (i+1) xs)
 
-selectSacrifice :: Int -> [Int] -> Int -> Game -> Game
-selectSacrifice costOfObjOfSummon sacrifices i game =
-  if costOfObjOfSummon > (foldr (+) 0 $ map (energy . ((game^.turnPlayer.hand)!!)) $ i:sacrifices)
-     then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
-     else phase .~ End $ turnPlayer . hand %~ (foldr (.) id $ map delByIx $ insert i sacrifices) $ game
+selectSacrifice :: Int -> Int -> Game -> Game
+selectSacrifice costOfObjOfSummon i game =
+  if costOfObjOfSummon > (energy $ game ^. turnPlayer . hand . ix i)
+     then game & phase .~ (Sacrifice $ costOfObjOfSummon - (energy $ game ^. turnPlayer . hand . ix i)) & turnPlayer . hand %~ delByIx i
+     else game & turnPlayer . hand %~ delByIx i & phase .~ End
 
 selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j = phase .~ Move (i, j)
@@ -119,7 +118,7 @@ summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
     & field . summonableZone . (ix for) .~ (Just $ (game^.areYouTurnPlayer, color))
     & (if 0 == (cost $ color)
       then phase .~ End
-      else phase .~ Sacrifice (cost color) [])
+      else phase .~ Sacrifice (cost color))
 
 draw :: Game -> Game
 draw game = let get (a:newDeck) = Just a; get _ = Nothing in
@@ -132,8 +131,8 @@ operateWithHand i game =
   case game ^. phase of
     Main ->
       case selectObjOfSummon i game of Just news -> news; Nothing -> game
-    Sacrifice costOfObjOfSummon sacrifices ->
-      selectSacrifice costOfObjOfSummon sacrifices i game
+    Sacrifice costOfObjOfSummon ->
+      selectSacrifice costOfObjOfSummon i game
     _ -> game
 
 operateWithField :: Int -> Int -> Game -> Game
@@ -161,11 +160,10 @@ instance P.ToElem Game where
           forM_ (zip handsLis $ map isSelectable $ game ^. players . _1 ^. hand) $
             \(eachLi, isItSelectable) -> when isItSelectable $ setAttr eachLi "class" "selectable-hand"
           return e
-      Sacrifice costOfObjOfSummon objOfSacr ->
+      Sacrifice costOfObjOfSummon ->
         P.Perch $ \e -> do
           handsLis <- elemsByQS e "#yours ol.hand li"
           forM_ handsLis $ setAttr `flip` "class" `flip` "selectable-hand"
-          mapM_ (setAttr `flip` "class" `flip` "sacrifice") $ map (handsLis !!) objOfSacr
           return e
       Summon objOfSummon ->
         P.Perch $ \e -> do
