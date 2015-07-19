@@ -110,6 +110,7 @@ move x y i j game =
   game
     & field . cell i j .~ (game ^. field . cell x y)
     & field . cell x y .~ Nothing
+    & phase .~ End
 
 summon :: Int -> Int -> Color -> Game -> Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
