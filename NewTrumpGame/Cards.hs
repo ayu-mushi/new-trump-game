@@ -9,7 +9,7 @@ module NewTrumpGame.Cards
     motionScope,
     ifWhite) where
 import System.Random.Shuffle (shuffle')
-import System.Random (RandomGen)
+import System.Random (StdGen)
 import Data.Maybe (isJust)
 
 newtype Color = Color { unColor :: Int } deriving Eq
@@ -43,7 +43,7 @@ energy (Card (Just color)) = energyOfColored color
 cost :: Color -> Int
 cost (Color i) = if i > 10 then 2 else 0
 
-initDeck :: RandomGen g => g -> [Card]
+initDeck :: StdGen -> [Card]
 initDeck g = shuffle' allCards (length allCards) g
   where allCards = concat $ replicate 4 $ map Card $ Nothing : (map (Just . Color) [1..13])
 

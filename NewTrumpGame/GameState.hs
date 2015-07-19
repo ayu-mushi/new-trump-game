@@ -10,7 +10,7 @@ import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2, both)
 import System.Random.Shuffle (shuffle')
-import System.Random (RandomGen, StdGen, Random(random))
+import System.Random (StdGen, Random(random))
 import Control.Monad (forM_, when)
 import Data.Maybe (isNothing, fromJust)
 
@@ -167,7 +167,7 @@ instance P.ToElem Game where
         mempty
     ]
 
-initGame :: RandomGen g => g -> g -> StdGen -> Game
+initGame :: StdGen -> StdGen -> StdGen -> Game
 initGame g h i =
   Game {
     _players =
