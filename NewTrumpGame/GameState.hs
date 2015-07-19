@@ -47,7 +47,7 @@ instance Show Phase where
     Draw          -> "ドロー"
     Main          -> "行動を選択"
     Move      _   -> "移動する位置を選択"
-    Sacrifice cost sacs -> "生贄を選択: あと" ++ (show $ cost - (length sacs)) ++ "枚必要"
+    Sacrifice cost sacs -> "生贄を選択: エネルギーがあと" ++ (show $ cost - (length sacs)) ++ "必要"
     Summon    _   -> "召喚する位置を選択"
     End           -> "手番を交代"
     Finish True   -> "あなたの勝ちです!"
