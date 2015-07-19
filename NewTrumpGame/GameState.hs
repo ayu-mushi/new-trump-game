@@ -157,7 +157,7 @@ instance P.ToElem Game where
       Main ->
         P.Perch $ \e -> do
           handsLis <- elemsByQS e $ "#"++(game^.turnPlayer & playerId) ++ " ol.hand li"
-          let isSelectable card = (isColored card) && ((cost $ fromJust $ fromCard $ card)<=(foldl (+) (0-energy card) $ map energy $ game^.turnPlayer.hand))
+          let isSelectable card = sufficientForSummon card $ game^.turnPlayer.hand
           forM_ (zip handsLis $ map isSelectable $ game ^. turnPlayer . hand) $
             \(eachLi, isItSelectable) -> when isItSelectable $ setAttr eachLi "class" "selectable-hand"
           return e
