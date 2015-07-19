@@ -184,7 +184,7 @@ initGame g h i =
   Game {
     _players =
       (initialDraw "あなた" "yours" show $ initDeck g,
-        initialDraw "コンピュータ" "computers" show $ initDeck h)
+        initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
     , _areYouTurnPlayer = True
     , _phase = Draw
     , _field = Field $ replicate 5 (replicate 3 Nothing)
