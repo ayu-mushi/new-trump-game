@@ -141,7 +141,7 @@ operateWithField i j game =
   case game ^. phase of
     Main               -> selectSbjOfMv i j game
     Move (x, y)        -> move x y i j game
-    Summon objOfSummon -> ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. players . _1 . hand) !! objOfSummon
+    Summon objOfSummon -> ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. turnPlayer . hand) !! objOfSummon
     _                  -> game
 
 instance P.ToElem Game where
@@ -157,8 +157,8 @@ instance P.ToElem Game where
       Main ->
         P.Perch $ \e -> do
           handsLis <- elemsByQS e $ "#"++(game^.turnPlayer & playerId) ++ " ol.hand li"
-          let isSelectable card = (isColored card) && ((cost $ fromJust $ fromCard $ card)<=(foldl (+) (0-energy card) $ map energy $ game^.players._1.hand))
-          forM_ (zip handsLis $ map isSelectable $ game ^. players . _1 ^. hand) $
+          let isSelectable card = (isColored card) && ((cost $ fromJust $ fromCard $ card)<=(foldl (+) (0-energy card) $ map energy $ game^.turnPlayer.hand))
+          forM_ (zip handsLis $ map isSelectable $ game ^. turnPlayer . hand) $
             \(eachLi, isItSelectable) -> when isItSelectable $ setAttr eachLi "class" "selectable-hand"
           return e
       Sacrifice costOfObjOfSummon ->
@@ -184,7 +184,7 @@ initGame g h i =
   Game {
     _players =
       (initialDraw "あなた" "yours" show $ initDeck g,
-        initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
+        initialDraw "コンピュータ" "computers" show $ initDeck h)
     , _areYouTurnPlayer = True
     , _phase = Draw
     , _field = Field $ replicate 5 (replicate 3 Nothing)
