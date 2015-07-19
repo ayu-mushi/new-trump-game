@@ -87,8 +87,8 @@ delByIx i xs = (take i xs) ++ (drop (i+1) xs)
 selectSacrifice :: Int -> Int -> Game -> Game
 selectSacrifice costOfObjOfSummon i game =
   if costOfObjOfSummon > (energy $ game ^. turnPlayer . hand . ix i)
-     then game & phase .~ (Sacrifice $ costOfObjOfSummon - (energy $ game ^. turnPlayer . hand . ix i)) & turnPlayer . hand %~ delByIx i
-     else game & turnPlayer . hand %~ delByIx i & phase .~ End
+     then game & phase .~ (Sacrifice $ costOfObjOfSummon - (energy $ game ^. turnPlayer . hand . ix i)) & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i
+     else game & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i & phase .~ End
 
 selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j = phase .~ Move (i, j)
@@ -102,8 +102,9 @@ ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
 cell :: Int -> Int -> Lens' Field (Maybe (Bool, Color))
 cell i j = (lens fromField (\(Field xss) yss -> Field yss)) . (ix i) . (ix j)
 
-addToDeck :: StdGen -> Card -> Player -> (Player, StdGen)
-addToDeck g card player = (player & deck %~ (card:) . (\x -> shuffle' x (length x) g), ((random::StdGen -> (Int, StdGen)) g)^._2)
+addToDeck :: Lens' Game Player -> Card -> Game -> Game
+addToDeck pl card game =
+  game & (pl . deck %~ ((card:) . (\x -> shuffle' x (length x) $ game ^. gen))) & gen %~ ((^. _2). (random::StdGen -> (Int, StdGen)))
 
 move :: Int -> Int -> Int -> Int -> Game -> Game
 move x y i j game =
