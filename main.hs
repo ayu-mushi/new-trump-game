@@ -88,11 +88,7 @@ whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j 
 
 whenClickHand :: MVar Game -> P.Perch
 whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
-  modifyMVar_ reftoGame $ \game -> return $
-    case game ^. phase of
-      Main -> case selectObjOfSummon i game of Just news -> news; Nothing -> game
-      Sacrifice costOfObjOfSummon sacrifices -> case selectSacrifice i game of Just news -> news; Nothing -> game
-      _ -> game
+  modifyMVar_ reftoGame $ return . operateWithHand i
   refresh reftoGame
   return ()
 

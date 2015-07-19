@@ -1,6 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 module NewTrumpGame.GameState
-  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon) where
+  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
@@ -85,14 +85,11 @@ selectObjOfSummon i game = if sufficientForSummon (game ^. turnPlayer . hand . i
 delByIx :: Int -> [a] -> [a]
 delByIx i xs = (take i xs) ++ (drop (i+1) xs)
 
-selectSacrifice :: Int -> Game -> Maybe Game
-selectSacrifice i game =
-  case game ^. phase of
-    Sacrifice costOfObjOfSummon sacrifices -> Just $
-      if costOfObjOfSummon > (foldr (+) 0 $ map (energy . ((game^.turnPlayer.hand)!!)) $ i:sacrifices)
-         then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
-         else phase .~ End $ turnPlayer . hand %~ (foldr (.) id $ map delByIx $ insert i sacrifices) $ game
-    _ -> Nothing
+selectSacrifice :: Int -> [Int] -> Int -> Game -> Game
+selectSacrifice costOfObjOfSummon sacrifices i game =
+  if costOfObjOfSummon > (foldr (+) 0 $ map (energy . ((game^.turnPlayer.hand)!!)) $ i:sacrifices)
+     then phase .~ (Sacrifice costOfObjOfSummon $ insert i sacrifices) $ game
+     else phase .~ End $ turnPlayer . hand %~ (foldr (.) id $ map delByIx $ insert i sacrifices) $ game
 
 selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j = phase .~ Move (i, j)
@@ -129,6 +126,15 @@ draw game = let get (a:newDeck) = Just a; get _ = Nothing in
   case get $ game ^. turnPlayer . deck of
     Just card -> game & turnPlayer . hand %~ (card:) & turnPlayer . deck %~ tail & phase .~ Main
     Nothing   -> game & phase .~ (Finish $ game^.areYouTurnPlayer)
+
+operateWithHand :: Int -> Game -> Game
+operateWithHand i game =
+  case game ^. phase of
+    Main ->
+      case selectObjOfSummon i game of Just news -> news; Nothing -> game
+    Sacrifice costOfObjOfSummon sacrifices ->
+      selectSacrifice costOfObjOfSummon sacrifices i game
+    _ -> game
 
 instance P.ToElem Game where
   toElem game = mconcat [
