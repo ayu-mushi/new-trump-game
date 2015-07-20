@@ -194,6 +194,15 @@ instance P.ToElem Game where
           forM_ (zip summonTds (map isNothing $ game ^. field . (summonableZone $ game ^. areYourTurn))) $
             \(eachTd, isNotLived) -> when isNotLived $ setAttr eachTd "class" "summonable-zone"
           return e
+      Move sbjOfMv ->
+        P.Perch $ \e -> do
+          fieldTrs <- elemsByQS e "#field tr"
+          sbjTd <- fmap (!! (sbjOfMv ^. _2)) $ elemsByQS (fieldTrs !! (sbjOfMv^._1)) "td"
+          setAttr sbjTd "id" "moving-subject"
+          fieldTdss <- sequence $ map (elemsByQS `flip` "td") fieldTrs
+          sequence_ $ map (setAttr `flip` "class" `flip` "motion-scope") $
+            (map (\possibleMoving -> fieldTdss ^. ix (possibleMoving sbjOfMv ^. _1) . ix (possibleMoving sbjOfMv ^. _2)) $ motionScope (game ^. areYourTurn) $ view _2 $ fromJust $ game ^. field . uncurry cell sbjOfMv)
+          return e
       _ ->
         mempty
     ]
