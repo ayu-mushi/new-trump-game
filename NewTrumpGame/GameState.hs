@@ -17,7 +17,7 @@ import Data.Maybe (isNothing, fromMaybe, isJust)
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
 
-newtype Field = Field { fromField :: [[Maybe (Bool, Color)]] } -- Left is あなた
+newtype Field = Field { fromField :: [[Maybe (Bool, Card)]] } -- Left is あなた
 
 instance P.ToElem Field where
   toElem (Field xss) = P.forElems "table#field" $
@@ -72,9 +72,7 @@ turnPlayer = lens getting setting
     setting game p = players . (if game ^. areYouTurnPlayer then _1 else _2) .~ p $ game
 
 sufficientForSummon :: Card -> [Card] -> Bool
-sufficientForSummon card hand =
-  ifWhite False
-    (\color -> (cost $ color) <= (foldl (+) (0 - energyOfColored color) $ map energy $ hand)) $ card
+sufficientForSummon card hand = (cost $ card) <= (foldl (+) (0 - energy card) $ map energy $ hand)
 
 selectObjOfSummon :: Int -> Game -> Maybe Game
 selectObjOfSummon i game = if sufficientForSummon (game ^. turnPlayer . hand . ix i) $ game^.turnPlayer.hand
@@ -93,13 +91,13 @@ selectSacrifice costOfObjOfSummon i game =
 selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j = phase .~ Move (i, j)
 
-summonableZone :: Bool -> Lens' Field [Maybe (Bool, Color)]
+summonableZone :: Bool -> Lens' Field [Maybe (Bool, Card)]
 summonableZone areYourTurn = lens ((if areYourTurn then last else head) . fromField) $ \(Field p) x -> Field $ if areYourTurn then (init p) ++ [x] else x:(tail p)
 
 ix :: Int -> Lens' [a] a
 ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
 
-cell :: Int -> Int -> Lens' Field (Maybe (Bool, Color))
+cell :: Int -> Int -> Lens' Field (Maybe (Bool, Card))
 cell i j = (lens fromField (\(Field xss) yss -> Field yss)) . (ix i) . (ix j)
 
 addToDeck :: Lens' Game Player -> Card -> Game -> Game
@@ -113,7 +111,7 @@ move x y i j game =
     & field . cell x y .~ Nothing
     & phase .~ End
 
-summon :: Int -> Int -> Color -> Game -> Maybe Game
+summon :: Int -> Int -> Card -> Game -> Maybe Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
   if isJust $ game ^. field . summonableZone (game ^. areYouTurnPlayer) . (ix for)
     then Nothing
@@ -150,7 +148,7 @@ operateWithField i j game =
     Move (x, y)        -> move x y i j game
     Summon objOfSummon ->
       if (not (game ^. areYouTurnPlayer) || i == ((length $ fromField $ game ^. field) - 1)) && ((game ^. areYouTurnPlayer) || i == 0)
-         then ifWhite game (fromMaybe game . ((summon objOfSummon j) `flip` game)) $ (game ^. turnPlayer . hand) !! objOfSummon
+         then fromMaybe game $ summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game
          else game
     _                  -> game
 

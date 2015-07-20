@@ -5,7 +5,7 @@ import Lens.Family2
 import Lens.Family2.Unchecked
 import qualified Haste.Perch as P
 import Data.Monoid (mconcat, mappend)
-import NewTrumpGame.Cards (Card, Color)
+import NewTrumpGame.Cards (Card)
 
 data Player = Player
   { _hand :: [Card]

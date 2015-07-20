@@ -1,56 +1,34 @@
 module NewTrumpGame.Cards
-  ( Card(fromCard),
-    isColored,
-    Color,
-    energyOfColored,
+( Card(cardIndex),
     energy,
     cost,
     initDeck,
-    motionScope,
-    ifWhite) where
+    motionScope) where
 import System.Random.Shuffle (shuffle')
 import System.Random (StdGen)
 import Data.Maybe (isJust)
 
-newtype Color = Color { unColor :: Int } deriving Eq
+newtype Card = Card { cardIndex :: Int } deriving Eq
 
-instance Show Color where
-  show (Color 1)  = "A"
-  show (Color 11) = "J"
-  show (Color 12) = "Q"
-  show (Color 13) = "K"
-  show (Color i)  = show i
-
-instance Ord Color where
-  compare (Color x) (Color y) = compare x y
-
-newtype Card = Card { fromCard :: Maybe Color }
+instance Ord Card where
+  compare (Card n) (Card m) = compare n m
 
 instance Show Card where
-  show (Card Nothing)      = "w"
-  show (Card (Just color)) = show color
-
-isColored :: Card -> Bool
-isColored = isJust . fromCard
-
-energyOfColored :: Color -> Int
-energyOfColored _ = 1
+  show (Card 1) = "w"
+  show (Card 11) = "J"
+  show (Card 12) = "Q"
+  show (Card 13) = "K"
+  show (Card i)  = show i
 
 energy :: Card -> Int
-energy (Card Nothing) = 2
-energy (Card (Just color)) = energyOfColored color
+energy (Card i) = if i == 1 then 2 else 1
 
-cost :: Color -> Int
-cost (Color i) = if i > 10 then 2 else 0
+cost :: Card -> Int
+cost (Card i) = if i > 10 then 2 else if i == 1 then 114514 else 0
 
 initDeck :: StdGen -> [Card]
 initDeck g = shuffle' allCards (length allCards) g
-  where allCards = concat $ replicate 2 $ map Card $ Nothing : (map (Just . Color) [1..13])
+  where allCards = concat $ replicate 2 $ map Card $ [1..13]
 
-motionScope :: Color -> [(Int, Int)]
+motionScope :: Card -> [(Int, Int)]
 motionScope card = [(0, -1)]
-
-ifWhite :: a -> (Color -> a) -> Card -> a
-ifWhite a f card = case card of
-  Card (Just color) -> f color
-  Card Nothing -> a
