@@ -79,11 +79,12 @@ refresh reftoGame = void $
 appendActWithTime :: IO () -> IO () -> IO ()
 appendActWithTime a b = a >> setTimeout 1000 b
 
-concatActWithTime :: IO () -> [IO ()] -> IO ()
-concatActWithTime = foldl appendActWithTime
+concatActWithTime :: [IO ()] -> IO ()
+concatActWithTime = foldr1 appendActWithTime
 
 turnChange :: MVar Game -> IO ()
-turnChange reftoGame = concatActWithTime (return ()) [
+turnChange reftoGame = concatActWithTime [
+  return (),
   (modifyMVar_ reftoGame $ return . (phase .~ Draw) . (areYouTurnPlayer %~ not)) >> refresh reftoGame,
   (modifyMVar_ reftoGame $ return . draw) >> refresh reftoGame
   ]
