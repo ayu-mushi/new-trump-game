@@ -6,7 +6,6 @@ module NewTrumpGame.Cards
     motionScope) where
 import System.Random.Shuffle (shuffle')
 import System.Random (StdGen)
-import Data.Maybe (isJust)
 
 newtype Card = Card { cardIndex :: Int } deriving Eq
 
