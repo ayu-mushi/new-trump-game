@@ -137,6 +137,10 @@ operateWithHand i game =
       case selectObjOfSummon i game of Just news -> news; Nothing -> game
     Sacrifice costOfObjOfSummon ->
       selectSacrifice costOfObjOfSummon i game
+    Summon objOfSummon ->
+      if i == objOfSummon
+         then game & phase .~ Main
+         else case selectObjOfSummon i game of Just news -> news; Nothing -> game
     _ -> game
 
 operateWithField :: Int -> Int -> Game -> Game
