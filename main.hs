@@ -76,8 +76,11 @@ refresh reftoGame = void $
     body <- P.getBody
     P.build (P.toElem game) body
 
+withTime :: IO () -> IO ()
+withTime = setTimeout 1000
+
 appendActWithTime :: IO () -> IO () -> IO ()
-appendActWithTime a b = a >> setTimeout 1000 b
+appendActWithTime a b = a >> withTime b
 
 concatActWithTime :: [IO ()] -> IO ()
 concatActWithTime = foldr1 appendActWithTime
@@ -108,11 +111,11 @@ main = do
   g <- newStdGen
   h <- newStdGen
   i <- newStdGen
-  let game = draw $ initGame g h i
+  let game = initGame g h i
   reftoGame <- newMVar game
   body <- P.getBody
   P.build (whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game) body
-  return ()
+  withTime $ modifyMVar_ reftoGame (return . draw) >> refresh reftoGame
 
   where
     newStdGen = fmap mkStdGen $ ffi $ toJSString "(function(){ return Math.floor(Math.random() * Math.pow(2, 53)); })"
