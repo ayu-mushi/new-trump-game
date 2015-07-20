@@ -45,7 +45,7 @@ cost (Color i) = if i > 10 then 2 else 0
 
 initDeck :: StdGen -> [Card]
 initDeck g = shuffle' allCards (length allCards) g
-  where allCards = concat $ replicate 4 $ map Card $ Nothing : (map (Just . Color) [1..13])
+  where allCards = concat $ replicate 2 $ map Card $ Nothing : (map (Just . Color) [1..13])
 
 motionScope :: Color -> [(Int, Int)]
 motionScope card = [(0, -1)]
