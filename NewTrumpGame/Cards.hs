@@ -6,6 +6,7 @@ module NewTrumpGame.Cards
     motionScope) where
 import System.Random.Shuffle (shuffle')
 import System.Random (StdGen)
+import Control.Arrow ((***))
 
 newtype Card = Card { cardIndex :: Int } deriving Eq
 
@@ -29,5 +30,5 @@ initDeck :: StdGen -> [Card]
 initDeck g = shuffle' allCards (length allCards) g
   where allCards = concat $ replicate 2 $ map Card $ [1..13]
 
-motionScope :: Card -> [(Int, Int)]
-motionScope card = [(0, -1)]
+motionScope :: Card -> [(Int, Int) -> (Int, Int)]
+motionScope card = [(+1) *** id]
