@@ -11,7 +11,7 @@ import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2, both)
 import System.Random.Shuffle (shuffle')
 import System.Random (StdGen, Random(random))
-import Control.Monad (forM_, when)
+import Control.Monad (forM_, when, zipWithM_)
 import Data.Maybe (isNothing, fromMaybe, isJust, fromJust)
 
 import NewTrumpGame.Cards
@@ -179,6 +179,12 @@ instance P.ToElem Game where
           let isSelectable card = sufficientForSummon card $ game^.turnPlayer.hand
           forM_ (zip handsLis $ map isSelectable $ game ^. turnPlayer . hand) $
             \(eachLi, isItSelectable) -> when isItSelectable $ setAttr eachLi "class" "selectable-hand"
+          fieldTrs <- elemsByQS e "#field tr"
+          fieldTdss <- mapM (`elemsByQS` "td") fieldTrs
+          zipWithM_ (\el cl -> case cl of
+              Just havitedCl -> if (havitedCl ^. _1) == (game ^. areYourTurn) then setAttr el "class" "movable-card" else return ()
+              Nothing -> return ())
+                (concat fieldTdss) $ concat $ fromField $ game ^. field
           return e
       Sacrifice costOfObjOfSummon ->
         P.Perch $ \e -> do
