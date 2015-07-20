@@ -12,7 +12,7 @@ import Lens.Family2.Stock (_1, _2, both)
 import System.Random.Shuffle (shuffle')
 import System.Random (StdGen, Random(random))
 import Control.Monad (forM_, when)
-import Data.Maybe (isNothing, fromMaybe, isJust)
+import Data.Maybe (isNothing, fromMaybe, isJust, fromJust)
 
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
@@ -88,8 +88,14 @@ selectSacrifice costOfObjOfSummon i game =
      then game & phase .~ (Sacrifice $ costOfObjOfSummon - (energy $ game ^. turnPlayer . hand . ix i)) & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i
      else game & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i & phase .~ End
 
-selectSbjOfMv :: Int -> Int -> Game -> Game
-selectSbjOfMv i j = phase .~ Move (i, j)
+selectSbjOfMv :: Int -> Int -> Game -> Maybe Game
+selectSbjOfMv i j game =
+  case game ^. field . cell i j of
+    Just c ->
+      if ((game ^. areYourTurn) == (c ^. _1))
+        then Just $ game & phase .~ Move (i, j)
+        else Nothing
+    Nothing -> Nothing
 
 summonableZone :: Bool -> Lens' Field [Maybe (Bool, Card)]
 summonableZone areYourTurn = lens ((if areYourTurn then last else head) . fromField) $ \(Field p) x -> Field $ if areYourTurn then (init p) ++ [x] else x:(tail p)
@@ -104,12 +110,17 @@ addToDeck :: Lens' Game Player -> Card -> Game -> Game
 addToDeck pl card game =
   game & (pl . deck %~ ((card:) . (\x -> shuffle' x (length x) $ game ^. gen))) & gen %~ ((^. _2). (random::StdGen -> (Int, StdGen)))
 
-move :: Int -> Int -> Int -> Int -> Game -> Game
+move :: Int -> Int -> Int -> Int -> Game -> Maybe Game
 move x y i j game =
-  game
-    & field . cell i j .~ (game ^. field . cell x y)
-    & field . cell x y .~ Nothing
-    & phase .~ End
+  case game ^. field . cell x y of
+    Just c ->
+      if (i, j) `elem` (map ($ (x, y)) $ motionScope (game ^. areYourTurn) $ c ^. _2)
+        then Just $ game
+          & field . cell i j .~ (game ^. field . cell x y)
+          & field . cell x y .~ Nothing
+          & phase .~ End
+        else Nothing
+    Nothing -> Nothing
 
 summon :: Int -> Int -> Card -> Game -> Maybe Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
@@ -144,8 +155,8 @@ operateWithHand i game =
 operateWithField :: Int -> Int -> Game -> Game
 operateWithField i j game =
   case game ^. phase of
-    Main               -> selectSbjOfMv i j game
-    Move (x, y)        -> move x y i j game
+    Main               -> fromMaybe game $ selectSbjOfMv i j game
+    Move (x, y)        -> fromMaybe game $ move x y i j game
     Summon objOfSummon ->
       if (not (game ^. areYourTurn) || i == ((length $ fromField $ game ^. field) - 1)) && ((game ^. areYourTurn) || i == 0)
          then fromMaybe game $ summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game

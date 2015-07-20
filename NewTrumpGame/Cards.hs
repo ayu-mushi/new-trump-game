@@ -30,5 +30,5 @@ initDeck :: StdGen -> [Card]
 initDeck g = shuffle' allCards (length allCards) g
   where allCards = concat $ replicate 2 $ map Card $ [1..13]
 
-motionScope :: Card -> [(Int, Int) -> (Int, Int)]
-motionScope card = [(+1) *** id]
+motionScope :: Bool -> Card -> [(Int, Int) -> (Int, Int)]
+motionScope p card = [(if p then pred else succ) *** id]
