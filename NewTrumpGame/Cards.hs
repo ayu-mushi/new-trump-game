@@ -14,7 +14,7 @@ instance Ord Card where
   compare (Card n) (Card m) = compare n m
 
 instance Show Card where
-  show (Card 1) = "w"
+  show (Card 1) = "A"
   show (Card 11) = "J"
   show (Card 12) = "Q"
   show (Card 13) = "K"
