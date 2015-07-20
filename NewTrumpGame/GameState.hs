@@ -142,7 +142,10 @@ operateWithField i j game =
   case game ^. phase of
     Main               -> selectSbjOfMv i j game
     Move (x, y)        -> move x y i j game
-    Summon objOfSummon -> ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. turnPlayer . hand) !! objOfSummon
+    Summon objOfSummon ->
+      if (not (game ^. areYouTurnPlayer) || i == ((length $ fromField $ game ^. field) - 1)) && ((game ^. areYouTurnPlayer) || i == 0)
+         then ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. turnPlayer . hand) !! objOfSummon
+         else game
     _                  -> game
 
 instance P.ToElem Game where
