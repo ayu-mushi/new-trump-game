@@ -12,7 +12,7 @@ import Lens.Family2.Stock (_1, _2, both)
 import System.Random.Shuffle (shuffle')
 import System.Random (StdGen, Random(random))
 import Control.Monad (forM_, when)
-import Data.Maybe (isNothing, fromJust)
+import Data.Maybe (isNothing, fromMaybe, isJust)
 
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
@@ -113,14 +113,16 @@ move x y i j game =
     & field . cell x y .~ Nothing
     & phase .~ End
 
-summon :: Int -> Int -> Color -> Game -> Game
+summon :: Int -> Int -> Color -> Game -> Maybe Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
-  game
-    & turnPlayer . hand %~ delByIx objOfSummon
-    & field . summonableZone (game ^. areYouTurnPlayer) . (ix for) .~ (Just $ (game^.areYouTurnPlayer, color))
-    & (if 0 == (cost $ color)
-      then phase .~ End
-      else phase .~ Sacrifice (cost color))
+  if isJust $ game ^. field . summonableZone (game ^. areYouTurnPlayer) . (ix for)
+    then Nothing
+    else Just $ game
+      & turnPlayer . hand %~ delByIx objOfSummon
+      & field . summonableZone (game ^. areYouTurnPlayer) . (ix for) .~ (Just $ (game^.areYouTurnPlayer, color))
+      & (if 0 == (cost $ color)
+        then phase .~ End
+        else phase .~ Sacrifice (cost color))
 
 draw :: Game -> Game
 draw game = let get (a:newDeck) = Just a; get _ = Nothing in
@@ -144,7 +146,7 @@ operateWithField i j game =
     Move (x, y)        -> move x y i j game
     Summon objOfSummon ->
       if (not (game ^. areYouTurnPlayer) || i == ((length $ fromField $ game ^. field) - 1)) && ((game ^. areYouTurnPlayer) || i == 0)
-         then ifWhite game ((summon objOfSummon j) `flip` game) $ (game ^. turnPlayer . hand) !! objOfSummon
+         then ifWhite game (fromMaybe game . ((summon objOfSummon j) `flip` game)) $ (game ^. turnPlayer . hand) !! objOfSummon
          else game
     _                  -> game
 
