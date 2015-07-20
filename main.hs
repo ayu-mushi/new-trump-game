@@ -88,7 +88,7 @@ concatActWithTime = foldr1 appendActWithTime
 turnChange :: MVar Game -> IO ()
 turnChange reftoGame = concatActWithTime [
   return (),
-  (modifyMVar_ reftoGame $ return . (phase .~ Draw) . (areYouTurnPlayer %~ not)) >> refresh reftoGame,
+  (modifyMVar_ reftoGame $ return . (phase .~ Draw) . (areYourTurn %~ not)) >> refresh reftoGame,
   (modifyMVar_ reftoGame $ return . draw) >> refresh reftoGame
   ]
 

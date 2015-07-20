@@ -1,6 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 module NewTrumpGame.GameState
-  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, areYouTurnPlayer) where
+  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, areYourTurn) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
@@ -54,13 +54,13 @@ instance Show Phase where
 
 data Game = Game {
   _players :: (Player, Player), -- (players ^. _1 . playerName) == "あなた"
-  _areYouTurnPlayer :: Bool,
+  _areYourTurn :: Bool,
   _phase :: Phase,
   _field :: Field,
   _gen :: StdGen
   }
 players :: Lens' Game (Player, Player); players = lens _players (\p x -> p { _players = x })
-areYouTurnPlayer :: Lens' Game Bool; areYouTurnPlayer = lens _areYouTurnPlayer $ \p x -> p { _areYouTurnPlayer = x }
+areYourTurn :: Lens' Game Bool; areYourTurn = lens _areYourTurn $ \p x -> p { _areYourTurn = x }
 phase :: Lens' Game Phase; phase = lens _phase $ \p x -> p { _phase = x }
 field :: Lens' Game Field; field = lens _field (\p x -> p { _field = x})
 gen :: Lens' Game StdGen; gen = lens _gen $ \p x -> p { _gen = x }
@@ -68,8 +68,8 @@ gen :: Lens' Game StdGen; gen = lens _gen $ \p x -> p { _gen = x }
 turnPlayer :: Lens' Game Player
 turnPlayer = lens getting setting
   where
-    getting game = game ^. players . (if game ^. areYouTurnPlayer then _1 else _2)
-    setting game p = players . (if game ^. areYouTurnPlayer then _1 else _2) .~ p $ game
+    getting game = game ^. players . (if game ^. areYourTurn then _1 else _2)
+    setting game p = players . (if game ^. areYourTurn then _1 else _2) .~ p $ game
 
 sufficientForSummon :: Card -> [Card] -> Bool
 sufficientForSummon card hand = (cost $ card) <= (foldl (+) (0 - energy card) $ map energy $ hand)
@@ -113,11 +113,11 @@ move x y i j game =
 
 summon :: Int -> Int -> Card -> Game -> Maybe Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
-  if isJust $ game ^. field . summonableZone (game ^. areYouTurnPlayer) . (ix for)
+  if isJust $ game ^. field . summonableZone (game ^. areYourTurn) . (ix for)
     then Nothing
     else Just $ game
       & turnPlayer . hand %~ delByIx objOfSummon
-      & field . summonableZone (game ^. areYouTurnPlayer) . (ix for) .~ (Just $ (game^.areYouTurnPlayer, color))
+      & field . summonableZone (game ^. areYourTurn) . (ix for) .~ (Just $ (game^.areYourTurn, color))
       & (if 0 == (cost $ color)
         then phase .~ End
         else phase .~ Sacrifice (cost color))
@@ -126,7 +126,7 @@ draw :: Game -> Game
 draw game = let get (a:newDeck) = Just a; get _ = Nothing in
   case get $ game ^. turnPlayer . deck of
     Just card -> game & turnPlayer . hand %~ (card:) & turnPlayer . deck %~ tail & phase .~ Main
-    Nothing   -> game & phase .~ (Finish $ game^.areYouTurnPlayer)
+    Nothing   -> game & phase .~ (Finish $ game^.areYourTurn)
 
 operateWithHand :: Int -> Game -> Game
 operateWithHand i game =
@@ -147,7 +147,7 @@ operateWithField i j game =
     Main               -> selectSbjOfMv i j game
     Move (x, y)        -> move x y i j game
     Summon objOfSummon ->
-      if (not (game ^. areYouTurnPlayer) || i == ((length $ fromField $ game ^. field) - 1)) && ((game ^. areYouTurnPlayer) || i == 0)
+      if (not (game ^. areYourTurn) || i == ((length $ fromField $ game ^. field) - 1)) && ((game ^. areYourTurn) || i == 0)
          then fromMaybe game $ summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game
          else game
     _                  -> game
@@ -179,8 +179,8 @@ instance P.ToElem Game where
           handsLis <- elemsByQS e $ "#"++(game^.turnPlayer & playerId) ++ " ol.hand li"
           setAttr (handsLis !! objOfSummon) "id" "obj-of-summon"
           fieldTrs <- elemsByQS e "#field tr"
-          summonTds <- elemsByQS ((if game ^. areYouTurnPlayer then last else head) fieldTrs) "td"
-          forM_ (zip summonTds (map isNothing $ game ^. field . (summonableZone $ game ^. areYouTurnPlayer))) $
+          summonTds <- elemsByQS ((if game ^. areYourTurn then last else head) fieldTrs) "td"
+          forM_ (zip summonTds (map isNothing $ game ^. field . (summonableZone $ game ^. areYourTurn))) $
             \(eachTd, isNotLived) -> when isNotLived $ setAttr eachTd "class" "summonable-zone"
           return e
       _ ->
@@ -193,7 +193,7 @@ initGame g h i =
     _players =
       (initialDraw "あなた" "yours" show $ initDeck g,
         initialDraw "コンピュータ" "computers" (const "?") $ initDeck h)
-    , _areYouTurnPlayer = True
+    , _areYourTurn = True
     , _phase = Draw
     , _field = Field $ replicate 5 (replicate 3 Nothing)
     , _gen = i
