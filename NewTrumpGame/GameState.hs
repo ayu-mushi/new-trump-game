@@ -182,7 +182,7 @@ instance P.ToElem Game where
           fieldTrs <- elemsByQS e "#field tr"
           fieldTdss <- mapM (`elemsByQS` "td") fieldTrs
           zipWithM_ (\el cl -> case cl of
-              Just havitedCl -> if (havitedCl ^. _1) == (game ^. areYourTurn) then setAttr el "class" "movable-card" else return ()
+              Just havitedCl -> if (havitedCl ^. _1) == (game ^. areYourTurn) then setAttr el "class" ("movable-card" ++ if havitedCl ^. _1 then " your-card" else " computers-card") else return ()
               Nothing -> return ())
                 (concat fieldTdss) $ concat $ fromField $ game ^. field
           return e
