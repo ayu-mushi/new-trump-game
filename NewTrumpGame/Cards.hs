@@ -7,6 +7,8 @@ module NewTrumpGame.Cards
 import System.Random.Shuffle (shuffle')
 import System.Random (StdGen)
 import Control.Arrow ((***))
+import Lens.Family2 ((%~))
+import Lens.Family2.Stock (_1, both)
 
 newtype Card = Card { cardIndex :: Int } deriving Eq
 
@@ -30,5 +32,11 @@ initDeck :: StdGen -> [Card]
 initDeck g = shuffle' allCards (length allCards) g
   where allCards = concat $ replicate 2 $ map Card $ [1..13]
 
+additionalMotion :: [(Int, Int)] -> [(Int, Int) -> (Int, Int)]
+additionalMotion = map $ \(x, y) -> \(i, j) -> (x + i, y + j)
+
+symmetryMotion :: [(Int, Int)] -> Bool -> [(Int, Int) -> (Int, Int)]
+symmetryMotion scope p = additionalMotion $ if p then scope else map (_1 %~ negate) scope
+
 motionScope :: Bool -> Card -> [(Int, Int) -> (Int, Int)]
-motionScope p card = [(if p then pred else succ) *** id]
+motionScope p card = symmetryMotion [(-1, 0)] p
