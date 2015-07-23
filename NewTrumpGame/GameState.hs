@@ -113,12 +113,19 @@ addToDeck pl card game =
 move :: Int -> Int -> Int -> Int -> Game -> Maybe Game
 move x y i j game =
   case game ^. field . cell x y of
-    Just (theCard, whoHas) ->
-      if (i, j) `elem` (map ($ (x, y)) $ motionScope (game ^. isYourTurn) whoHas)
-        then Just $ game
-          & field . cell i j .~ Just (theCard, whoHas)
-          & field . cell x y .~ Nothing
-          & phase .~ End
+    Just from ->
+      if (i, j) `elem` (map ($ (x, y)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
+        then case game ^. field . cell i j of
+          Just to -> if (from ^. _2) > (to ^. _2)
+            then Just $ game
+              & field . cell i j .~ Just from
+              & field . cell x y .~ Nothing
+              & phase .~ End
+            else Just game
+          Nothing -> Just $ game
+            & field . cell i j .~ Just from
+            & field . cell x y .~ Nothing
+            & phase .~ End
         else Nothing
     Nothing -> Nothing
 
