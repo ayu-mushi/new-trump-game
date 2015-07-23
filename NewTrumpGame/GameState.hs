@@ -119,6 +119,19 @@ justMove srcX srcY tarX tarY game =
       & phase .~ End
     Nothing -> Nothing
 
+isMovable :: Int -> Int -> Int -> Int -> Game -> Bool
+isMovable srcX srcY tarX tarY game =
+  case game ^. field . cell srcX srcY of
+    Just from ->
+      if (tarX, tarY) `elem` (map ($ (srcX, srcY)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
+        then case game ^. field . cell tarX tarY of
+          Just to -> if (from ^. _2) > (to ^. _2)
+            then True
+            else False
+          Nothing -> False
+        else False
+    Nothing -> False
+
 move :: Int -> Int -> Int -> Int -> Game -> Maybe Game
 move srcX srcY tarX tarY game =
   case game ^. field . cell srcX srcY of
