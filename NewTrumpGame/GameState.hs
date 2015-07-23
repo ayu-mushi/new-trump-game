@@ -220,7 +220,9 @@ instance P.ToElem Game where
           setAttr sbjTd "id" "moving-subject"
           fieldTdss <- sequence $ map (elemsByQS `flip` "td") fieldTrs
           mapM_ (setAttr `flip` "class" `flip` "motion-scope") $
-            (map (\possibleMoving -> fieldTdss ^. ix (possibleMoving sbjOfMv ^. _1) . ix (possibleMoving sbjOfMv ^. _2)) $ motionScope (game ^. isYourTurn) $ view _2 $ fromJust $ game ^. field . uncurry cell sbjOfMv)
+            (map (\possibleMoving -> fieldTdss ^. ix (possibleMoving sbjOfMv ^. _1) . ix (possibleMoving sbjOfMv ^. _2))
+              $ filter (uncurry (uncurry (isMovable game) sbjOfMv) . ($ sbjOfMv))
+                $ motionScope (game ^. isYourTurn) $ view _2 $ fromJust $ game ^. field . uncurry cell sbjOfMv)
           return e
       _ ->
         mempty
