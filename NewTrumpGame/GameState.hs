@@ -128,22 +128,12 @@ isMovable srcX srcY tarX tarY game =
           Just to -> if (from ^. _2) > (to ^. _2)
             then True
             else False
-          Nothing -> False
+          Nothing -> True
         else False
     Nothing -> False
 
 move :: Int -> Int -> Int -> Int -> Game -> Maybe Game
-move srcX srcY tarX tarY game =
-  case game ^. field . cell srcX srcY of
-    Just from ->
-      if (tarX, tarY) `elem` (map ($ (srcX, srcY)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
-        then case game ^. field . cell tarX tarY of
-          Just to -> if (from ^. _2) > (to ^. _2)
-            then game & justMove srcX srcY tarX tarY
-            else Just game
-          Nothing -> game & justMove srcX srcY tarX tarY
-        else Nothing
-    Nothing -> Nothing
+move srcX srcY tarX tarY game = if isMovable srcX srcY tarX tarY game then justMove srcX srcY tarX tarY game else Nothing
 
 summon :: Int -> Int -> Card -> Game -> Maybe Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
