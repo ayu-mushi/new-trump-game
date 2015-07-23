@@ -219,7 +219,7 @@ instance P.ToElem Game where
           sbjTd <- fmap (!! (sbjOfMv ^. _2)) $ elemsByQS (fieldTrs !! (sbjOfMv^._1)) "td"
           setAttr sbjTd "id" "moving-subject"
           fieldTdss <- sequence $ map (elemsByQS `flip` "td") fieldTrs
-          sequence_ $ map (setAttr `flip` "class" `flip` "motion-scope") $
+          mapM_ (setAttr `flip` "class" `flip` "motion-scope") $
             (map (\possibleMoving -> fieldTdss ^. ix (possibleMoving sbjOfMv ^. _1) . ix (possibleMoving sbjOfMv ^. _2)) $ motionScope (game ^. isYourTurn) $ view _2 $ fromJust $ game ^. field . uncurry cell sbjOfMv)
           return e
       _ ->
