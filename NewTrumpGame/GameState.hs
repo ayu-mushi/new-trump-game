@@ -119,8 +119,8 @@ justMove srcX srcY tarX tarY game =
       & phase .~ End
     Nothing -> Nothing
 
-isMovable :: Int -> Int -> Int -> Int -> Game -> Bool
-isMovable srcX srcY tarX tarY game =
+isMovable :: Game -> Int -> Int -> Int -> Int -> Bool
+isMovable game srcX srcY tarX tarY =
   case game ^. field . cell srcX srcY of
     Just from ->
       if (tarX, tarY) `elem` (map ($ (srcX, srcY)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
@@ -133,7 +133,7 @@ isMovable srcX srcY tarX tarY game =
     Nothing -> False
 
 move :: Int -> Int -> Int -> Int -> Game -> Maybe Game
-move srcX srcY tarX tarY game = if isMovable srcX srcY tarX tarY game then justMove srcX srcY tarX tarY game else Nothing
+move srcX srcY tarX tarY game = if isMovable game srcX srcY tarX tarY then justMove srcX srcY tarX tarY game else Nothing
 
 summon :: Int -> Int -> Card -> Game -> Maybe Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
