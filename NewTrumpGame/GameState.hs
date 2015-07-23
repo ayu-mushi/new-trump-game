@@ -110,6 +110,15 @@ addToDeck :: Lens' Game Player -> Card -> Game -> Game
 addToDeck pl card game =
   game & (pl . deck %~ ((card:) . (\x -> shuffle' x (length x) $ game ^. gen))) & gen %~ ((^. _2). (random::StdGen -> (Int, StdGen)))
 
+justMove :: Int -> Int -> Int -> Int -> Game -> Maybe Game
+justMove srcX srcY tarX tarY game =
+  case game ^. field . cell srcX srcY of
+    Just from -> Just $ game
+      & field . cell tarX tarY .~ Just from
+      & field . cell srcX srcY .~ Nothing
+      & phase .~ End
+    Nothing -> Nothing
+
 move :: Int -> Int -> Int -> Int -> Game -> Maybe Game
 move srcX srcY tarX tarY game =
   case game ^. field . cell srcX srcY of
@@ -117,15 +126,9 @@ move srcX srcY tarX tarY game =
       if (tarX, tarY) `elem` (map ($ (srcX, srcY)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
         then case game ^. field . cell tarX tarY of
           Just to -> if (from ^. _2) > (to ^. _2)
-            then Just $ game
-              & field . cell tarX tarY .~ Just from
-              & field . cell srcX srcY .~ Nothing
-              & phase .~ End
+            then game & justMove srcX srcY tarX tarY
             else Just game
-          Nothing -> Just $ game
-            & field . cell tarX tarY .~ Just from
-            & field . cell srcX srcY .~ Nothing
-            & phase .~ End
+          Nothing -> game & justMove srcX srcY tarX tarY
         else Nothing
     Nothing -> Nothing
 
