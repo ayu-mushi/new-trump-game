@@ -111,20 +111,20 @@ addToDeck pl card game =
   game & (pl . deck %~ ((card:) . (\x -> shuffle' x (length x) $ game ^. gen))) & gen %~ ((^. _2). (random::StdGen -> (Int, StdGen)))
 
 move :: Int -> Int -> Int -> Int -> Game -> Maybe Game
-move x y i j game =
-  case game ^. field . cell x y of
+move srcX srcY tarX tarY game =
+  case game ^. field . cell srcX srcY of
     Just from ->
-      if (i, j) `elem` (map ($ (x, y)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
-        then case game ^. field . cell i j of
+      if (tarX, tarY) `elem` (map ($ (srcX, srcY)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
+        then case game ^. field . cell tarX tarY of
           Just to -> if (from ^. _2) > (to ^. _2)
             then Just $ game
-              & field . cell i j .~ Just from
-              & field . cell x y .~ Nothing
+              & field . cell tarX tarY .~ Just from
+              & field . cell srcX srcY .~ Nothing
               & phase .~ End
             else Just game
           Nothing -> Just $ game
-            & field . cell i j .~ Just from
-            & field . cell x y .~ Nothing
+            & field . cell tarX tarY .~ Just from
+            & field . cell srcX srcY .~ Nothing
             & phase .~ End
         else Nothing
     Nothing -> Nothing
