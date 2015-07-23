@@ -5,7 +5,7 @@ import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
 import Haste (alert)
-import Haste.DOM (elemsByQS, setAttr)
+import Haste.DOM (elemsByQS, setAttr, setClass)
 import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2, both)
@@ -192,18 +192,18 @@ instance P.ToElem Game where
           handsLis <- elemsByQS e $ "#"++(game^.turnPlayer & playerId) ++ " ol.hand li"
           let isSelectable card = sufficientForSummon card $ game^.turnPlayer.hand
           forM_ (zip handsLis $ map isSelectable $ game ^. turnPlayer . hand) $
-            \(eachLi, isItSelectable) -> when isItSelectable $ setAttr eachLi "class" "selectable-hand"
+            \(eachLi, isItSelectable) -> when isItSelectable $ setClass eachLi "selectable-hand" True
           fieldTrs <- elemsByQS e "#field tr"
           fieldTdss <- mapM (`elemsByQS` "td") fieldTrs
           zipWithM_ (\el cl -> case cl of
-              Just havitedCl -> if (havitedCl ^. _1) == (game ^. isYourTurn) then setAttr el "class" ("movable-card" ++ if havitedCl ^. _1 then " your-card" else " computers-card") else return ()
+              Just havitedCl -> if havitedCl ^. _1 == game ^. isYourTurn then setClass el "movable-card" True else return ()
               Nothing -> return ())
                 (concat fieldTdss) $ concat $ fromField $ game ^. field
           return e
       Sacrifice costOfObjOfSummon ->
         P.Perch $ \e -> do
           handsLis <- elemsByQS e $ "#"++(game^.turnPlayer & playerId) ++ " ol.hand li"
-          forM_ handsLis $ setAttr `flip` "class" `flip` "selectable-hand"
+          forM_ handsLis $ setClass `flip` "selectable-hand" `flip` True
           return e
       Summon objOfSummon ->
         P.Perch $ \e -> do
@@ -220,7 +220,7 @@ instance P.ToElem Game where
           sbjTd <- fmap (!! (sbjOfMv ^. _2)) $ elemsByQS (fieldTrs !! (sbjOfMv^._1)) "td"
           setAttr sbjTd "id" "moving-subject"
           fieldTdss <- sequence $ map (elemsByQS `flip` "td") fieldTrs
-          mapM_ (setAttr `flip` "class" `flip` "motion-scope") $
+          mapM_ (setClass `flip` "motion-scope" `flip` True) $
             (map (\possibleMoving -> fieldTdss ^. ix (possibleMoving sbjOfMv ^. _1) . ix (possibleMoving sbjOfMv ^. _2))
               $ filter (uncurry (uncurry (isMovable game) sbjOfMv) . ($ sbjOfMv))
                 $ motionScope (game ^. isYourTurn) $ view _2 $ fromJust $ game ^. field . uncurry cell sbjOfMv)
