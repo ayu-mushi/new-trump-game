@@ -116,7 +116,8 @@ justMove srcX srcY tarX tarY game =
     Just from -> Just $ game
       & field . cell tarX tarY .~ Just from
       & field . cell srcX srcY .~ Nothing
-      & phase .~ End
+      & if ((not $ game ^. isYourTurn) && (tarX+1) == (length $ fromField $ game ^. field))
+        || ((game ^. isYourTurn) && tarX == 0) then phase .~ Finish (game ^. isYourTurn) else phase .~ End
     Nothing -> Nothing
 
 isMovable :: Game -> Int -> Int -> Int -> Int -> Bool
