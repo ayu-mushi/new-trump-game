@@ -88,6 +88,9 @@ selectSacrifice costOfObjOfSummon i game =
      then game & phase .~ (Sacrifice $ costOfObjOfSummon - (energy $ game ^. turnPlayer . hand . ix i)) & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i
      else game & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i & phase .~ End
 
+movableZone :: Card -> Game -> Int -> Int -> [(Int, Int)]
+movableZone c game i j = filter (uncurry (uncurry (isMovable game) (i, j))) $ map ($ (i, j)) $ motionScope (game ^. isYourTurn) c
+
 selectSbjOfMv :: Int -> Int -> Game -> Maybe Game
 selectSbjOfMv i j game =
   case game ^. field . cell i j of
