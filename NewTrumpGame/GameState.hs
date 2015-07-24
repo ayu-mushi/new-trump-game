@@ -16,6 +16,7 @@ import Data.Maybe (isNothing, fromMaybe, isJust, fromJust)
 
 import NewTrumpGame.Cards
 import NewTrumpGame.Player
+import NewTrumpGame.Util
 
 newtype Field = Field { fromField :: [[Maybe (Bool, Card)]] } -- Left is あなた
 
@@ -200,9 +201,14 @@ instance P.ToElem Game where
           fieldTrs <- elemsByQS e "#field tr"
           fieldTdss <- mapM (`elemsByQS` "td") fieldTrs
           zipWithM_ (\el cl -> case cl of
-              Just havitedCl -> if havitedCl ^. _1 == game ^. isYourTurn then setClass el "movable-card" True else return ()
+              Just havitedCl ->
+                do
+                  i <- indexOfParentEl el
+                  j <- indexEl 0 el
+                  if havitedCl ^. _1 == game ^. isYourTurn && (not $ null $ movableZone (havitedCl^._2) game i j) then setClass el "movable-card" True else return ()
               Nothing -> return ())
-                (concat fieldTdss) $ concat $ fromField $ game ^. field
+                (concat fieldTdss)
+                $ concat $ fromField $ game ^. field
           return e
       Sacrifice costOfObjOfSummon ->
         P.Perch $ \e -> do
