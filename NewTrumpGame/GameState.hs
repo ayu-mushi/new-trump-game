@@ -96,6 +96,7 @@ selectSbjOfMv i j game =
   case game ^. field . cell i j of
     Just c ->
       if ((game ^. isYourTurn) == (c ^. _1))
+         && (not $ null $ movableZone (c^._2) game i j)
         then Just $ game & phase .~ Move (i, j)
         else Nothing
     Nothing -> Nothing
