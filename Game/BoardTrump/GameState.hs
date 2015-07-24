@@ -1,5 +1,5 @@
 {-# LANGUAGE Rank2Types #-}
-module NewTrumpGame.GameState
+module Game.BoardTrump.GameState
   (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, isYourTurn) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
@@ -14,9 +14,9 @@ import System.Random (StdGen, Random(random))
 import Control.Monad (forM_, when, zipWithM_)
 import Data.Maybe (isNothing, fromMaybe, isJust, fromJust)
 
-import NewTrumpGame.Cards
-import NewTrumpGame.Player
-import NewTrumpGame.Util
+import Game.BoardTrump.Cards
+import Game.BoardTrump.Player
+import Game.BoardTrump.Util
 
 newtype Field = Field { fromField :: [[Maybe (Bool, Card)]] } -- Left is あなた
 

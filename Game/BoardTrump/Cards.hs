@@ -1,4 +1,4 @@
-module NewTrumpGame.Cards
+module Game.BoardTrump.Cards
 ( Card(cardIndex),
     energy,
     cost,

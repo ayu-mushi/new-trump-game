@@ -11,10 +11,10 @@ import Lens.Family2
 import Lens.Family2.Stock
 import System.Random (mkStdGen)
 
-import NewTrumpGame.GameState
-import NewTrumpGame.Player
-import NewTrumpGame.Cards
-import NewTrumpGame.Util
+import Game.BoardTrump.GameState
+import Game.BoardTrump.Player
+import Game.BoardTrump.Cards
+import Game.BoardTrump.Util
 
 refresh :: MVar Game -> IO ()
 refresh reftoGame = void $

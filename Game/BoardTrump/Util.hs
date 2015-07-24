@@ -1,4 +1,4 @@
-module NewTrumpGame.Util where
+module Game.BoardTrump.Util where
 
 import qualified Haste.Perch as P
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName, setTimeout)
