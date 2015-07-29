@@ -155,7 +155,7 @@ draw :: Game -> Game
 draw game = let get (a:newDeck) = Just a; get _ = Nothing in
   case get $ game ^. turnPlayer . deck of
     Just card -> game & turnPlayer . hand %~ (card:) & turnPlayer . deck %~ tail & phase .~ Main
-    Nothing   -> game & phase .~ (Finish $ game^.isYourTurn)
+    Nothing   -> game & phase .~ (Finish $ not $ game^.isYourTurn)
 
 operateWithHand :: Int -> Game -> Game
 operateWithHand i game =
