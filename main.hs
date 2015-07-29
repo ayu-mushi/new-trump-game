@@ -35,29 +35,36 @@ appendActWithTime a b = a >> withTime b
 concatActWithTime :: [IO ()] -> IO ()
 concatActWithTime = foldr1 appendActWithTime
 
-turnChange :: IORef Game -> IO ()
-turnChange reftoGame = concatActWithTime [
+turnChange :: IORef Game -> IO () -> IO ()
+turnChange reftoGame cont = concatActWithTime [
   return (),
   (modifyIORef reftoGame $ (phase .~ Draw) . (isYourTurn %~ not)) >> refresh reftoGame,
-  (modifyIORef reftoGame draw) >> refresh reftoGame
+  (modifyIORef reftoGame draw) >> refresh reftoGame,
+  cont
   ]
 
 runCPU :: IORef Game -> IO ()
-runCPU reftoGame = modifyIORef reftoGame $ \game ->
-  let (play, g) = randomly game in game & runPlay play & gen .~ g
+runCPU reftoGame = withIORef reftoGame $ \game ->
+  if game ^. phase == End
+    then turnChange reftoGame $ return ()
+    else do
+      let (play, g) = randomly game
+      modifyIORef reftoGame $ \game -> game & runPlay play & gen .~ g
+      refresh reftoGame
+      withTime $ runCPU reftoGame
 
 whenClickField :: IORef Game -> P.Perch
 whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
   modifyIORef reftoGame $ operateWithField i j
   refresh reftoGame
-  withIORef reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame; _ -> return ()
+  withIORef reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame $ runCPU reftoGame; _ -> return ()
   return ()
 
 whenClickHand :: IORef Game -> P.Perch
 whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> withIORef reftoGame $ \game -> if not $ game ^. isYourTurn then return () else do
   modifyIORef reftoGame $ operateWithHand i
   refresh reftoGame
-  withIORef reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame; _ -> return ()
+  withIORef reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame $ runCPU reftoGame; _ -> return ()
   return ()
 
 main :: IO ()

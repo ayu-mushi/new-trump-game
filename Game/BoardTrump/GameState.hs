@@ -38,7 +38,7 @@ data Phase =
   | Summon
     Int -- object of summon
   | End
-  | Finish Bool
+  | Finish Bool deriving Eq
 
 instance Show Phase where
   show p = case p of
