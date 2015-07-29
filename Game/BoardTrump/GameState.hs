@@ -110,6 +110,9 @@ ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
 cell :: Int -> Int -> Lens' [[Maybe (Bool, Card)]] (Maybe (Bool, Card))
 cell i j = (ix i) . (ix j)
 
+--forPlaneWithIx :: [[a]] -> (Int -> Int -> a -> b) -> [[b]]
+--forPlaneWithIx plane f = map (zip [0..]) plane
+
 addToDeck :: Lens' Game Player -> Card -> Game -> Game
 addToDeck pl card game =
   game & (pl . deck %~ ((card:) . (\x -> shuffle' x (length x) $ game ^. gen))) & gen %~ ((^. _2). (random::StdGen -> (Int, StdGen)))
@@ -174,7 +177,7 @@ operateWithField :: Int -> Int -> Game -> Game
 operateWithField i j game =
   case game ^. phase of
     Main               -> fromMaybe game $ selectSbjOfMv i j game
-    Move (x, y)        -> fromMaybe game $ move x y i j game
+    Move (x, y)        -> if x == i && y == j then game & phase .~ Main else fromMaybe game $ move x y i j game
     Summon objOfSummon ->
       if (not (game ^. isYourTurn) || i == ((length $ game ^. field) - 1)) && ((game ^. isYourTurn) || i == 0)
          then fromMaybe game $ summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game
