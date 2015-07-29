@@ -1,6 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 module Game.BoardTrump.GameState
-  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, isYourTurn, turnPlayer, field, cell, movableZone) where
+  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, isYourTurn, turnPlayer, field, cell, movableZone, isSelectable) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
@@ -181,6 +181,9 @@ operateWithField i j game =
          else game
     _                  -> game
 
+isSelectable :: Game -> Card -> Bool
+isSelectable game card = sufficientForSummon card $ game^.turnPlayer.hand
+
 instance P.ToElem Game where
   toElem game = mconcat [
     fieldToElem $ game ^. field
@@ -194,8 +197,7 @@ instance P.ToElem Game where
       Main ->
         P.Perch $ \e -> do
           handsLis <- elemsByQS e $ "#"++(game^.turnPlayer & playerId) ++ " ol.hand li"
-          let isSelectable card = sufficientForSummon card $ game^.turnPlayer.hand
-          forM_ (zip handsLis $ map isSelectable $ game ^. turnPlayer . hand) $
+          forM_ (zip handsLis $ map (isSelectable game) $ game ^. turnPlayer . hand) $
             \(eachLi, isItSelectable) -> when isItSelectable $ setClass eachLi "selectable-hand" True
           fieldTrs <- elemsByQS e "#field tr"
           fieldTdss <- mapM (`elemsByQS` "td") fieldTrs
