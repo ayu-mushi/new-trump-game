@@ -1,4 +1,4 @@
-module Game.BoardTrump.CPU () where
+module Game.BoardTrump.CPU (randomly, runPlay) where
 
 import Lens.Family2
 import Lens.Family2.Stock (_2)
@@ -27,3 +27,8 @@ randomly :: Game -> (Play, StdGen)
 randomly game =
   let (i, g) = randomR (0, pred $ length $ possiblePlay game) $ game ^. gen
    in (possiblePlay game ^. ix i, g)
+
+runPlay :: Play -> Game -> Game
+runPlay (Play play) game = case play of
+  Left i -> operateWithHand i game
+  Right (i, j) -> operateWithField i j game

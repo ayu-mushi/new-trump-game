@@ -2,7 +2,7 @@ module Main (main) where
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName, setTimeout)
 import Haste.DOM (elemsByQS)
 import Haste.Foreign (ffi)
-import Control.Concurrent
+import Data.IORef
 import qualified Haste.Perch as P
 import Control.Monad (void, when)
 import Data.Monoid ((<>))
@@ -15,10 +15,14 @@ import Game.BoardTrump.GameState
 import Game.BoardTrump.Player
 import Game.BoardTrump.Cards
 import Game.BoardTrump.Util
+import Game.BoardTrump.CPU
 
-refresh :: MVar Game -> IO ()
+withIORef :: IORef a -> (a -> IO b) -> IO b
+withIORef ref act = readIORef ref >>= act
+
+refresh :: IORef Game -> IO ()
 refresh reftoGame = void $
-  withMVar reftoGame $ \game -> do
+  withIORef reftoGame $ \game -> do
     body <- P.getBody
     P.build (P.toElem game) body
 
@@ -31,25 +35,29 @@ appendActWithTime a b = a >> withTime b
 concatActWithTime :: [IO ()] -> IO ()
 concatActWithTime = foldr1 appendActWithTime
 
-turnChange :: MVar Game -> IO ()
+turnChange :: IORef Game -> IO ()
 turnChange reftoGame = concatActWithTime [
   return (),
-  (modifyMVar_ reftoGame $ return . (phase .~ Draw) . (isYourTurn %~ not)) >> refresh reftoGame,
-  (modifyMVar_ reftoGame $ return . draw) >> refresh reftoGame
+  (modifyIORef reftoGame $ (phase .~ Draw) . (isYourTurn %~ not)) >> refresh reftoGame,
+  (modifyIORef reftoGame draw) >> refresh reftoGame
   ]
 
-whenClickField :: MVar Game -> P.Perch
+runCPU :: IORef Game -> IO ()
+runCPU reftoGame = modifyIORef reftoGame $ \game ->
+  let (play, g) = randomly game in game & runPlay play & gen .~ g
+
+whenClickField :: IORef Game -> P.Perch
 whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
-  modifyMVar_ reftoGame $ return . operateWithField i j
+  modifyIORef reftoGame $ operateWithField i j
   refresh reftoGame
-  withMVar reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame; _ -> return ()
+  withIORef reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame; _ -> return ()
   return ()
 
-whenClickHand :: MVar Game -> P.Perch
-whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
-  modifyMVar_ reftoGame $ return . operateWithHand i
+whenClickHand :: IORef Game -> P.Perch
+whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> withIORef reftoGame $ \game -> if not $ game ^. isYourTurn then return () else do
+  modifyIORef reftoGame $ operateWithHand i
   refresh reftoGame
-  withMVar reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame; _ -> return ()
+  withIORef reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame; _ -> return ()
   return ()
 
 main :: IO ()
@@ -58,10 +66,10 @@ main = do
   h <- newStdGen
   i <- newStdGen
   let game = initGame g h i
-  reftoGame <- newMVar game
+  reftoGame <- newIORef game
   body <- P.getBody
   P.build (whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game) body
-  withTime $ modifyMVar_ reftoGame (return . draw) >> refresh reftoGame
+  withTime $ modifyIORef reftoGame draw >> refresh reftoGame
 
   where
     newStdGen = fmap mkStdGen $ ffi $ toJSString "(function(){ return Math.floor(Math.random() * Math.pow(2, 53)); })"
