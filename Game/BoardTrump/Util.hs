@@ -4,7 +4,7 @@ module Game.BoardTrump.Util where
 import qualified Haste.Perch as P
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName, setTimeout)
 import Haste.Foreign (ffi)
-import Lens.Family2 (Lens')
+import Lens.Family2
 import Lens.Family2.Unchecked (lens)
 
 tagName :: Elem -> IO String
@@ -64,3 +64,6 @@ forIndexOfClickedTdElem f = forTargetWhenEvt OnClick $
 
 ix :: Int -> Lens' [a] a
 ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
+
+forPlaneWithIx :: [[a]] -> (Int -> Int -> a -> b) -> [[b]]
+forPlaneWithIx xss f = [[f i j $ xss ^. ix i . ix j | i <- [0..(pred $ length xss)]] | j <- [0..(pred $ length $ head xss)]]

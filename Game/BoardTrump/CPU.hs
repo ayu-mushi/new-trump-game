@@ -7,7 +7,7 @@ import System.Random (Random(randomR), StdGen)
 
 import Game.BoardTrump.Player (hand)
 import Game.BoardTrump.GameState
-import Game.BoardTrump.Util (ix)
+import Game.BoardTrump.Util (ix, forPlaneWithIx)
 
 newtype Play = Play (Either Int (Int, Int))
 
