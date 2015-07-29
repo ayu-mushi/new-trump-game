@@ -2,7 +2,7 @@ module Game.BoardTrump.CPU () where
 
 import Lens.Family2
 import Lens.Family2.Stock (_2)
-import Data.Maybe (fromJust, catMaybes)
+import Data.Maybe (fromJust, catMaybes, isJust)
 
 import Game.BoardTrump.Player (hand)
 import Game.BoardTrump.GameState
@@ -19,7 +19,7 @@ possiblePlay game =
       ++ (map (Play . Left) $ catMaybes $ map (\(i, p) -> if p then Just i else Nothing) $ zip [0..] $ map (isSelectable game) $ game ^. turnPlayer . hand)
     Sacrifice cost -> map (Play . Left) [0..(pred $ length $ game ^. turnPlayer . hand)]
     Move (x, y) -> map (Play . Right) $ movableZone (view _2 $ fromJust $ game ^. field . cell x y) game x y
-    Summon obj -> undefined
+    Summon obj -> map (Play . Right . (,) (if game^.isYourTurn then 0 else pred $ length $ game ^. field)) $ catMaybes $ map (\(i, m) -> if isJust m then Just i else Nothing) $ zip [0..] $ game ^. field . (summonableZone $ game ^. isYourTurn)
 
 randomly :: Game -> Play
 randomly = undefined
