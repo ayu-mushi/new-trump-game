@@ -1,8 +1,11 @@
+{-# LANGUAGE Rank2Types #-}
 module Game.BoardTrump.Util where
 
 import qualified Haste.Perch as P
 import Haste (alert, Elem, toJSString, Event(OnClick), evtName, setTimeout)
 import Haste.Foreign (ffi)
+import Lens.Family2 (Lens')
+import Lens.Family2.Unchecked (lens)
 
 tagName :: Elem -> IO String
 tagName = ffi $ toJSString "(function(e){ return e.tagName })"
@@ -58,3 +61,6 @@ forIndexOfClickedTdElem f = forTargetWhenEvt OnClick $
         f x y
       else
         return ()
+
+ix :: Int -> Lens' [a] a
+ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)

@@ -1,6 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 module Game.BoardTrump.GameState
-  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, isYourTurn, turnPlayer, field, cell, movableZone, isSelectable, summonableZone, forPlaneWithIx) where
+  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, isYourTurn, turnPlayer, field, cell, movableZone, isSelectable, summonableZone, forPlaneWithIx, gen) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
@@ -103,9 +103,6 @@ selectSbjOfMv i j game =
 
 summonableZone :: Bool -> Lens' [[Maybe (Bool, Card)]] [Maybe (Bool, Card)]
 summonableZone isYourTurn = lens (if isYourTurn then last else head) $ \p x -> if isYourTurn then (init p) ++ [x] else x:(tail p)
-
-ix :: Int -> Lens' [a] a
-ix i = lens (!! i) $ \p x -> (take i p) ++ [x] ++ (drop (i+1) p)
 
 cell :: Int -> Int -> Lens' [[Maybe (Bool, Card)]] (Maybe (Bool, Card))
 cell i j = (ix i) . (ix j)
