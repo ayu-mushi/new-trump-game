@@ -1,54 +1,64 @@
 body {
-  color: #505050; }
+  color: #4e454e;
+  background-color: #040004; }
 
 #field {
   border-collapse: collapse; }
-
-#field th {
-  border: 1px solid #b9b9b9; }
-
-#field td {
-  width: 50px;
-  height: 50px;
-  text-align: center;
-  border: 1px solid #b9b9b9; }
-
-#field td.summonable-zone {
-  background-color: #ffeeee; }
-
-#field td.summonable-zone:hover {
-  background-color: #ffdddd; }
-
-#field td.your-card {
-  color: #ff0000; }
-
-#field td.computers-card {
-  color: #00ff00; }
+  #field th {
+    border: 1px solid #4e454e; }
+  #field td {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: x-large;
+    border: 1px solid #4e454e; }
+    #field td.movable-card.your-card:hover {
+      color: #dd00fd; }
+    #field td.movable-card.computers-card:hover {
+      color: #16ff00; }
+    #field td#moving-subject.your-card {
+      color: #dd00fd; }
+    #field td#moving-subject.computers-card {
+      color: #16ff00; }
+    #field td.summonable-zone {
+      background-color: #14001b; }
+      #field td.summonable-zone:hover {
+        background-color: #1b000d; }
+    #field td.motion-scope {
+      background-color: #14001b; }
+      #field td.motion-scope:hover {
+        background-color: #1b000d; }
+    #field td.your-card {
+      color: #fa023c; }
+    #field td.computers-card {
+      transform: rotate(180deg);
+      color: #c8ff00; }
 
 ol.hand {
   list-style: none; }
+  ol.hand li {
+    display: inline-block;
+    margin: 0 3px;
+    font-size: x-large; }
 
-ol.hand li {
-  display: inline-block;
-  margin: 0 5px;
-  font-size: x-large; }
+ol.hand li#obj-of-summon {
+  color: #fa023c; }
+  ol.hand li#obj-of-summon:hover {
+    color: #fa023c; }
+ol.hand li.selectable-hand {
+  color: #e100fd; }
+  ol.hand li.selectable-hand:hover {
+    color: #ff00b3; }
 
-#yours ol.hand li#obj-of-summon {
-  color: #ff0000; }
+a:link {
+  color: #9900ff; }
+a:visited {
+  color: #ff00bb; }
+a:hover {
+  color: #de00ff;
+  text-decoration: none; }
 
-#yours ol.hand li#obj-of-summon:hover {
-  color: #dd0000; }
-
-#yours ol.hand li.sacrifice {
-  color: #0000aa; }
-
-#yours ol.hand li.sacrifice:hover {
-  color: #0000aa; }
-
-#yours ol.hand li.selectable-hand {
-  color: #447744; }
-
-#yours ol.hand li.selectable-hand:hover {
-  color: #88ff88; }
+hr {
+  border: 1px solid #c8ff00; }
 
 /*# sourceMappingURL=new-trump-game.css.map */
