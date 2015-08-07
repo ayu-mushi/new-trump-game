@@ -1,5 +1,5 @@
 module Main (main) where
-import Haste (alert, Elem, toJSString, Event(OnClick), evtName, setTimeout)
+import Haste (alert, Elem, toJSString, Event(OnClick), evtName, setTimeout, setCallback)
 import Haste.DOM (elemsByQS)
 import Haste.Foreign (ffi)
 import Data.IORef
@@ -67,6 +67,13 @@ whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem 
   withIORef reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame $ runCPU reftoGame; _ -> return ()
   return ()
 
+passButton :: IORef Game -> P.Perch
+passButton reftoGame = P.forElems "button#pass" $ P.Perch $ \e -> do
+  setCallback e OnClick $ \_ _ ->
+    withIORef reftoGame $
+      \game -> if game ^. isYourTurn then turnChange reftoGame $ runCPU reftoGame else return ()
+  return e
+
 main :: IO ()
 main = do
   g <- newStdGen
@@ -75,7 +82,7 @@ main = do
   let game = initGame g h i
   reftoGame <- newIORef game
   body <- P.getBody
-  P.build (whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game) body
+  P.build (passButton reftoGame <> whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game) body
   withTime $ modifyIORef reftoGame draw >> refresh reftoGame
 
   where
