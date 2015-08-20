@@ -33,7 +33,7 @@ data Phase =
   | Main
   | Move
     (Int, Int) -- subject of moving
-  | Pass
+  | Wait
   | Sacrifice
     Int -- rest cost of object of summon
   | Summon
@@ -45,7 +45,7 @@ instance Show Phase where
   show p = case p of
     Draw          -> "ドロー"
     Main          -> "行動を選択"
-    Pass          -> "パスします"
+    Wait          -> "パスします"
     Move      _   -> "移動する位置を選択"
     Sacrifice cost-> "生贄を選択: エネルギーがあと" ++ (show $ cost) ++ "必要"
     Summon    _   -> "召喚する位置を選択"
