@@ -46,13 +46,17 @@ turnChange reftoGame cont = concatActWithTime [
 
 runCPU :: IORef Game -> IO ()
 runCPU reftoGame = withIORef reftoGame $ \game ->
-  if game ^. phase == End
-    then turnChange reftoGame $ return ()
-    else do
-      let (play, g) = randomly game
-      modifyIORef reftoGame $ \game -> game & runPlay play & gen .~ g
-      refresh reftoGame
-      withTime $ runCPU reftoGame
+  case game ^. phase of
+       End -> turnChange reftoGame $ return ()
+       Wait -> do
+         modifyIORef reftoGame $ phase .~ End
+         refresh reftoGame
+         withTime $ runCPU reftoGame
+       _ -> do
+          let (play, g) = randomly game
+          modifyIORef reftoGame $ \game -> game & runPlay play & gen .~ g
+          refresh reftoGame
+          withTime $ runCPU reftoGame
 
 whenClickField :: IORef Game -> P.Perch
 whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
