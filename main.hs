@@ -5,6 +5,7 @@ import Haste.Foreign (ffi)
 import Data.IORef
 import qualified Haste.Perch as P
 import Control.Monad (void, when)
+import Control.Applicative ((<$>), (<*>))
 import Data.Monoid ((<>))
 import Data.List (foldr1)
 import Lens.Family2
@@ -76,10 +77,7 @@ passButton reftoGame = P.forElems "button#pass" $ P.Perch $ \e -> do
 
 main :: IO ()
 main = do
-  g <- newStdGen
-  h <- newStdGen
-  i <- newStdGen
-  let game = initGame g h i
+  game <- initGame <$> newStdGen <*> newStdGen <*> newStdGen
   reftoGame <- newIORef game
   body <- P.getBody
   P.build (passButton reftoGame <> whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game) body
