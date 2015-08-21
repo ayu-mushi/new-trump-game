@@ -89,7 +89,6 @@ selectSacrifice costOfObjOfSummon i game =
      then game & phase .~ (Sacrifice $ costOfObjOfSummon - (energy $ game ^. turnPlayer . hand . ix i)) & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i
      else game & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i & phase .~ End
 
--- TODO: 盤外に移動可能な場合でも選択肢としない
 movableZone :: Card -> Game -> Int -> Int -> [(Int, Int)]
 movableZone c game i j = filter (uncurry (uncurry (isMovable game) (i, j))) $ map ($ (i, j)) $ motionScope (game ^. isYourTurn) c
 
@@ -123,11 +122,14 @@ justMove srcX srcY tarX tarY game =
         || ((game ^. isYourTurn) && tarX == 0) then phase .~ Finish (game ^. isYourTurn) else phase .~ End
     Nothing -> Nothing
 
+isInField :: Game -> (Int, Int) -> Bool
+isInField game (i, j) = i >= 0 && j >= 0 && i <= (length (game ^. field)) && j <= length (head (game ^. field))
+
 isMovable :: Game -> Int -> Int -> Int -> Int -> Bool
 isMovable game srcX srcY tarX tarY =
   case game ^. field . cell srcX srcY of
     Just from ->
-      if (tarX, tarY) `elem` (map ($ (srcX, srcY)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
+      if isInField game (tarX, tarY) && (tarX, tarY) `elem` (map ($ (srcX, srcY)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
         then case game ^. field . cell tarX tarY of
           Just to -> if (from ^. _2) > (to ^. _2) && (to ^. _1) /= (from ^. _1)
             then True

@@ -39,4 +39,6 @@ symmetryMotion :: [(Int, Int)] -> Bool -> [(Int, Int) -> (Int, Int)]
 symmetryMotion scope p = additionalMotion $ if p then scope else map (_1 %~ negate) scope
 
 motionScope :: Bool -> Card -> [(Int, Int) -> (Int, Int)]
-motionScope p card = symmetryMotion [(-1, 0)] p
+motionScope p card
+  | (cardIndex card) < 10 = symmetryMotion [(-1, 0)] p
+  | otherwise             = symmetryMotion [(-1, -1), (-1, 0), (-1, 1)] p
