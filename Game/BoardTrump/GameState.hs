@@ -131,7 +131,7 @@ isMovable game srcX srcY tarX tarY =
     Just from ->
       if isInField game (tarX, tarY) && (tarX, tarY) `elem` (map ($ (srcX, srcY)) $ motionScope (game ^. isYourTurn) $ from ^. _2)
         then case game ^. field . cell tarX tarY of
-          Just to -> if (from ^. _2) > (to ^. _2) && (to ^. _1) /= (from ^. _1)
+          Just to -> if battle (from ^. _2) (to ^. _2) && (to ^. _1) /= (from ^. _1)
             then True
             else False
           Nothing -> True
