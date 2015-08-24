@@ -155,13 +155,16 @@ summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
         else phase .~ Sacrifice (cost color))
 
 draw :: Game -> Game
-draw game = let get (a:newDeck) = Just a; get _ = Nothing in
-  case get $ game ^. turnPlayer . deck of
-    Just card -> execState `flip` game $ do
-      turnPlayer . hand %= (card:)
-      turnPlayer . deck %= tail
-      phase .= Main
-    Nothing   -> game & phase .~ (Finish $ not $ game^.isYourTurn)
+draw = execState $ do
+  d <- use $ turnPlayer . deck
+  case d of
+       (card:d') -> do
+         turnPlayer.hand %= (card:)
+         turnPlayer.deck .= d'
+         phase .= Main
+       _ -> do
+         p <- use isYourTurn
+         phase .= (Finish $ not p)
 
 operateWithHand :: Int -> Game -> Game
 operateWithHand i game =
