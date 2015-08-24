@@ -1,4 +1,4 @@
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE Rank2Types, PackageImports #-}
 module Game.BoardTrump.GameState
   (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, isYourTurn, turnPlayer, field, cell, movableZone, isSummonable, summonableZone, gen) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
@@ -9,10 +9,12 @@ import Haste.DOM (elemsByQS, setAttr, setClass)
 import Lens.Family2
 import Lens.Family2.Unchecked
 import Lens.Family2.Stock (_1, _2, both)
+import Lens.Family2.State
 import System.Random.Shuffle (shuffle')
 import System.Random (StdGen, Random(random))
 import Control.Monad (forM_, when, zipWithM_)
 import Data.Maybe (isNothing, fromMaybe, isJust, fromJust)
+import "mtl" Control.Monad.State.Strict
 
 import Game.BoardTrump.Cards
 import Game.BoardTrump.Player
@@ -155,7 +157,10 @@ summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
 draw :: Game -> Game
 draw game = let get (a:newDeck) = Just a; get _ = Nothing in
   case get $ game ^. turnPlayer . deck of
-    Just card -> game & turnPlayer . hand %~ (card:) & turnPlayer . deck %~ tail & phase .~ Main
+    Just card -> execState `flip` game $ do
+      turnPlayer . hand %= (card:)
+      turnPlayer . deck %= tail
+      phase .= Main
     Nothing   -> game & phase .~ (Finish $ not $ game^.isYourTurn)
 
 operateWithHand :: Int -> Game -> Game
