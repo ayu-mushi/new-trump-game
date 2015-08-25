@@ -1,13 +1,13 @@
-all: build/main.js build/new-trump-game.css build/index.html
+all: build/main.js build/board-trump.css build/index.html
 
 build/main.js : main.hs Game/BoardTrump/CPU.hs Game/BoardTrump/Cards.hs Game/BoardTrump/GameState.hs Game/BoardTrump/Player.hs Game/BoardTrump/Util.hs
 	hastec $< --out=$@
 
-build/new-trump-game.css : new-trump-game.sass
+build/board-trump.css : board-trump.sass
 	sass $< $@
 
 build/index.html : index.html
 	cp $< $@
 
 clean:
-	rm build/main.js build/new-trump-game.css build/index.html
+	rm build/main.js build/board-trump.css build/index.html
