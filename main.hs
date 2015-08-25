@@ -77,19 +77,22 @@ whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem 
          _   -> return ()
   return ()
 
-passButton :: IORef Game -> P.Perch
-passButton reftoGame = P.forElems "button#pass" $ P.Perch $ \e -> do
+passButton :: IORef Bool -> IORef Game -> P.Perch
+passButton isBusy reftoGame = P.forElems "button#pass" $ P.Perch $ \e -> do
   setCallback e OnClick $ \_ _ -> do
     game <- readIORef reftoGame
-    when (game ^. isYourTurn) $
-      turnChange reftoGame $ runCPU reftoGame
+    p <- readIORef isBusy
+    when (not p && game ^. isYourTurn) $ do
+      writeIORef isBusy True
+      turnChange reftoGame $ runCPU reftoGame >> writeIORef isBusy False
   return e
 
 main :: IO ()
 main = do
   game <- initGame <$> newStdGen <*> newStdGen <*> newStdGen
   reftoGame <- newIORef game
-  P.getBody >>= P.build (passButton reftoGame <> whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game)
+  isBusy <- newIORef False
+  P.getBody >>= P.build (passButton isBusy reftoGame <> whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game)
   withTime $ modifyIORef reftoGame draw >> refresh reftoGame
 
   where
