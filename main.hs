@@ -18,14 +18,11 @@ import Game.BoardTrump.Cards
 import Game.BoardTrump.Util
 import Game.BoardTrump.CPU
 
-withIORef :: IORef a -> (a -> IO b) -> IO b
-withIORef ref act = readIORef ref >>= act
-
 refresh :: IORef Game -> IO ()
-refresh reftoGame = void $
-  withIORef reftoGame $ \game -> do
-    body <- P.getBody
-    P.build (P.toElem game) body
+refresh reftoGame = void $ do
+  game <- readIORef reftoGame
+  body <- P.getBody
+  P.build (P.toElem game) body
 
 withTime :: IO () -> IO ()
 withTime = setTimeout 1000
@@ -45,7 +42,8 @@ turnChange reftoGame cont = concatActWithTime [
   ]
 
 runCPU :: IORef Game -> IO ()
-runCPU reftoGame = withIORef reftoGame $ \game ->
+runCPU reftoGame = do
+  game <- readIORef reftoGame
   case game ^. phase of
        End -> turnChange reftoGame $ return ()
        Wait -> do
@@ -54,7 +52,7 @@ runCPU reftoGame = withIORef reftoGame $ \game ->
          withTime $ runCPU reftoGame
        _ -> do
           let (play, g) = randomly game
-          modifyIORef reftoGame $ \game -> game & runPlay play & gen .~ g
+          modifyIORef reftoGame $ (gen .~ g) . runPlay play
           refresh reftoGame
           withTime $ runCPU reftoGame
 
@@ -62,21 +60,29 @@ whenClickField :: IORef Game -> P.Perch
 whenClickField reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
   modifyIORef reftoGame $ operateWithField i j
   refresh reftoGame
-  withIORef reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame $ runCPU reftoGame; _ -> return ()
+  game <- readIORef reftoGame
+  case game ^. phase of
+    End -> turnChange reftoGame $ runCPU reftoGame
+    _   -> return ()
   return ()
 
 whenClickHand :: IORef Game -> P.Perch
-whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> withIORef reftoGame $ \game -> if not $ game ^. isYourTurn then return () else do
-  modifyIORef reftoGame $ operateWithHand i
-  refresh reftoGame
-  withIORef reftoGame $ \game -> case game ^. phase of End -> turnChange reftoGame $ runCPU reftoGame; _ -> return ()
+whenClickHand reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
+  game <- readIORef reftoGame
+  when (game ^. isYourTurn) $ do
+    modifyIORef reftoGame $ operateWithHand i
+    refresh reftoGame
+    case game ^. phase of
+         End -> turnChange reftoGame $ runCPU reftoGame
+         _   -> return ()
   return ()
 
 passButton :: IORef Game -> P.Perch
 passButton reftoGame = P.forElems "button#pass" $ P.Perch $ \e -> do
-  setCallback e OnClick $ \_ _ ->
-    withIORef reftoGame $
-      \game -> if game ^. isYourTurn then turnChange reftoGame $ runCPU reftoGame else return ()
+  setCallback e OnClick $ \_ _ -> do
+    game <- readIORef reftoGame
+    when (game ^. isYourTurn) $
+      turnChange reftoGame $ runCPU reftoGame
   return e
 
 main :: IO ()
