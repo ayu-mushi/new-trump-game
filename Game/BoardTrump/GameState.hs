@@ -125,7 +125,7 @@ justMove srcX srcY tarX tarY game =
     Nothing -> Nothing
 
 isInField :: Game -> (Int, Int) -> Bool
-isInField game (i, j) = i >= 0 && j >= 0 && i <= (length (game ^. field)) && j <= length (head (game ^. field))
+isInField game (i, j) = i >= 0 && j >= 0 && i < (length (game ^. field)) && j < length (head (game ^. field))
 
 isMovable :: Game -> Int -> Int -> Int -> Int -> Bool
 isMovable game srcX srcY tarX tarY =
