@@ -89,8 +89,7 @@ main :: IO ()
 main = do
   game <- initGame <$> newStdGen <*> newStdGen <*> newStdGen
   reftoGame <- newIORef game
-  body <- P.getBody
-  P.build (passButton reftoGame <> whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game) body
+  P.getBody >>= P.build (passButton reftoGame <> whenClickHand reftoGame <> whenClickField reftoGame <> P.toElem game)
   withTime $ modifyIORef reftoGame draw >> refresh reftoGame
 
   where
