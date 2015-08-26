@@ -61,7 +61,7 @@ runCPU isBusy reftoGame = do
 
 whenClickField :: IORef Bool -> IORef Game -> P.Perch
 whenClickField isBusy reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
-  modifyIORef reftoGame $ operateWithField i j
+  modifyIORef reftoGame $ runPlay $ WithField (i, j)
   refresh reftoGame
   game <- readIORef reftoGame
   case game ^. phase of
@@ -73,7 +73,7 @@ whenClickHand :: IORef Bool -> IORef Game -> P.Perch
 whenClickHand isBusy reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
   game <- readIORef reftoGame
   when (game ^. isYourTurn) $ do
-    modifyIORef reftoGame $ operateWithHand i
+    modifyIORef reftoGame $ runPlay $ WithHand i
     refresh reftoGame
     case game ^. phase of
          End -> turnChange isBusy reftoGame $ runCPU isBusy reftoGame

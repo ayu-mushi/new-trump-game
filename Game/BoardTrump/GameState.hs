@@ -1,6 +1,6 @@
 {-# LANGUAGE Rank2Types, PackageImports #-}
 module Game.BoardTrump.GameState
-  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, isYourTurn, turnPlayer, field, cell, movableZone, isSummonable, summonableZone, gen, Play(..), runPlay) where
+  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, isYourTurn, turnPlayer, field, cell, movableZone, isSummonable, summonableZone, gen, Play(..), runPlay) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
@@ -166,29 +166,33 @@ draw = execState $ do
          p <- use isYourTurn
          phase .= (Finish $ not p)
 
-operateWithHand :: Int -> Game -> Game
-operateWithHand i game =
-  case game ^. phase of
-    Main ->
-      case selectObjOfSummon i game of Just news -> news; Nothing -> game
-    Sacrifice costOfObjOfSummon ->
-      selectSacrifice costOfObjOfSummon i game
-    Summon objOfSummon ->
-      if i == objOfSummon
-         then game & phase .~ Main
-         else case selectObjOfSummon i game of Just news -> news; Nothing -> game
-    _ -> game
+data Play = WithHand Int | WithField (Int, Int) | Pass deriving Show
 
-operateWithField :: Int -> Int -> Game -> Game
-operateWithField i j game =
-  case game ^. phase of
-    Main               -> fromMaybe game $ selectSbjOfMv i j game
-    Move (x, y)        -> if x == i && y == j then game & phase .~ Main else fromMaybe game $ move x y i j game
-    Summon objOfSummon ->
-      if (not (game ^. isYourTurn) || i == ((length $ game ^. field) - 1)) && ((game ^. isYourTurn) || i == 0)
-         then fromMaybe game $ summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game
-         else game
-    _                  -> game
+runPlay :: Play -> Game -> Game
+runPlay play game = case play of
+  WithHand i ->
+    case game ^. phase of
+         Main ->
+           case selectObjOfSummon i game of Just news -> news; Nothing -> game
+         Sacrifice costOfObjOfSummon ->
+           selectSacrifice costOfObjOfSummon i game
+         Summon objOfSummon ->
+           if i == objOfSummon
+              then game & phase .~ Main
+              else case selectObjOfSummon i game of Just news -> news; Nothing -> game
+         _ -> game
+  WithField (i, j) ->
+    case game ^. phase of
+         Main               -> fromMaybe game $ selectSbjOfMv i j game
+         Move (x, y)        -> if x == i && y == j then game & phase .~ Main else fromMaybe game $ move x y i j game
+         Summon objOfSummon ->
+           if (not (game ^. isYourTurn) || i == ((length $ game ^. field) - 1)) && ((game ^. isYourTurn) || i == 0)
+              then fromMaybe game $ summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game
+              else game
+         _                  -> game
+  Pass -> case game ^. phase of
+               Sacrifice _ -> game
+               _           -> game & phase .~ Wait
 
 isSummonable :: Game -> Card -> Bool
 isSummonable game card = sufficientForSummon card $ game^.turnPlayer.hand
@@ -260,11 +264,3 @@ initGame g h i =
     , _field = replicate 5 (replicate 3 Nothing)
     , _gen = i
   }
-
-data Play = WithHand Int | WithField (Int, Int) | Pass deriving Show
-
-runPlay :: Play -> Game -> Game
-runPlay play game = case play of
-  WithHand i -> operateWithHand i game
-  WithField (i, j) -> operateWithField i j game
-  Pass -> game & phase .~ Wait
