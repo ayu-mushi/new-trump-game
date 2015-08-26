@@ -74,23 +74,14 @@ runPlayIO play isBusy reftoGame = do
 
 whenClickField :: IORef Bool -> IORef Game -> P.Perch
 whenClickField isBusy reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
-  modifyIORef reftoGame $ runPlay $ WithField (i, j)
-  refresh reftoGame
   game <- readIORef reftoGame
-  case game ^. phase of
-    End -> turnChange isBusy reftoGame
-    _   -> return ()
+  when (game ^. isYourTurn) $ runPlayIO (WithField (i, j)) isBusy reftoGame
   return ()
 
 whenClickHand :: IORef Bool -> IORef Game -> P.Perch
 whenClickHand isBusy reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
   game <- readIORef reftoGame
-  when (game ^. isYourTurn) $ do
-    modifyIORef reftoGame $ runPlay $ WithHand i
-    refresh reftoGame
-    case game ^. phase of
-         End -> turnChange isBusy reftoGame
-         _   -> return ()
+  when (game ^. isYourTurn) $ runPlayIO (WithHand i) isBusy reftoGame
   return ()
 
 passButton :: IORef Bool -> IORef Game -> P.Perch
