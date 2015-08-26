@@ -1,4 +1,4 @@
-module Game.BoardTrump.CPU (randomly, runPlay) where
+module Game.BoardTrump.CPU (randomly) where
 
 import Lens.Family2
 import Lens.Family2.Stock (_2)
@@ -8,8 +8,6 @@ import System.Random (Random(randomR), StdGen)
 import Game.BoardTrump.Player (hand)
 import Game.BoardTrump.GameState
 import Game.BoardTrump.Util (ix, forPlaneWithIx)
-
-data Play = WithHand Int | WithField (Int, Int) | Pass deriving Show
 
 advantage :: Game -> Int
 advantage = undefined
@@ -29,9 +27,3 @@ randomly :: Game -> (Play, StdGen)
 randomly game =
   let (i, g) = randomR (0, pred $ length $ possiblePlay game) $ game ^. gen
    in (possiblePlay game ^. ix i, g)
-
-runPlay :: Play -> Game -> Game
-runPlay play game = case play of
-  WithHand i -> operateWithHand i game
-  WithField (i, j) -> operateWithField i j game
-  Pass -> game & phase .~ Wait

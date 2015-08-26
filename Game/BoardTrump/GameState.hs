@@ -1,6 +1,6 @@
 {-# LANGUAGE Rank2Types, PackageImports #-}
 module Game.BoardTrump.GameState
-  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, isYourTurn, turnPlayer, field, cell, movableZone, isSummonable, summonableZone, gen) where
+  (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, operateWithHand, operateWithField, isYourTurn, turnPlayer, field, cell, movableZone, isSummonable, summonableZone, gen, Play(..), runPlay) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)
 import qualified Haste.Perch as P
@@ -260,3 +260,11 @@ initGame g h i =
     , _field = replicate 5 (replicate 3 Nothing)
     , _gen = i
   }
+
+data Play = WithHand Int | WithField (Int, Int) | Pass deriving Show
+
+runPlay :: Play -> Game -> Game
+runPlay play game = case play of
+  WithHand i -> operateWithHand i game
+  WithField (i, j) -> operateWithField i j game
+  Pass -> game & phase .~ Wait
