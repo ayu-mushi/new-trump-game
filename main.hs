@@ -33,31 +33,44 @@ appendActWithTime a b = a >> withTime b
 concatActWithTime :: [IO ()] -> IO ()
 concatActWithTime = foldr1 appendActWithTime
 
-turnChange :: IORef Bool -> IORef Game -> IO () -> IO ()
-turnChange isBusy reftoGame cont = do
+turnChange :: IORef Bool -> IORef Game -> IO ()
+turnChange isBusy reftoGame = do
   p <- readIORef isBusy
   when (not p) $
     concatActWithTime [
       writeIORef isBusy True,
       (modifyIORef reftoGame $ (phase .~ Draw) . (isYourTurn %~ not)) >> refresh reftoGame,
       (modifyIORef reftoGame draw) >> refresh reftoGame,
-      cont >> writeIORef isBusy False
+      do
+        game <- readIORef reftoGame
+        case game ^. isYourTurn of
+             True -> return ()
+             False -> runCPU isBusy reftoGame
+        writeIORef isBusy False
       ]
 
 runCPU :: IORef Bool -> IORef Game -> IO ()
 runCPU isBusy reftoGame = do
   game <- readIORef reftoGame
+  when (not $ game ^. isYourTurn) $ do
+    let (play, g) = randomly game
+    runPlayIO play isBusy reftoGame
+    modifyIORef reftoGame $ gen .~ g
+    withTime $ runCPU isBusy reftoGame
+
+runPlayIO :: Play -> IORef Bool -> IORef Game -> IO ()
+runPlayIO play isBusy reftoGame = do
+  modifyIORef reftoGame $ runPlay play
+  refresh reftoGame
+  game <- readIORef reftoGame
   case game ^. phase of
-       End -> turnChange isBusy reftoGame $ return ()
+       End  -> turnChange isBusy reftoGame
        Wait -> do
-         modifyIORef reftoGame $ phase .~ End
-         refresh reftoGame
-         withTime $ runCPU isBusy reftoGame
-       _ -> do
-          let (play, g) = randomly game
-          modifyIORef reftoGame $ (gen .~ g) . runPlay play
-          refresh reftoGame
-          withTime $ runCPU isBusy reftoGame
+         withTime $ do
+           modifyIORef reftoGame $ phase .~ End
+           refresh reftoGame
+           withTime $ turnChange isBusy reftoGame
+       _    -> return ()
 
 whenClickField :: IORef Bool -> IORef Game -> P.Perch
 whenClickField isBusy reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
@@ -65,7 +78,7 @@ whenClickField isBusy reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem 
   refresh reftoGame
   game <- readIORef reftoGame
   case game ^. phase of
-    End -> turnChange isBusy reftoGame $ runCPU isBusy reftoGame
+    End -> turnChange isBusy reftoGame
     _   -> return ()
   return ()
 
@@ -76,7 +89,7 @@ whenClickHand isBusy reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClicked
     modifyIORef reftoGame $ runPlay $ WithHand i
     refresh reftoGame
     case game ^. phase of
-         End -> turnChange isBusy reftoGame $ runCPU isBusy reftoGame
+         End -> turnChange isBusy reftoGame
          _   -> return ()
   return ()
 
@@ -84,8 +97,7 @@ passButton :: IORef Bool -> IORef Game -> P.Perch
 passButton isBusy reftoGame = P.forElems "button#pass" $ P.Perch $ \e -> do
   setCallback e OnClick $ \_ _ -> do
     game <- readIORef reftoGame
-    p <- readIORef isBusy
-    turnChange isBusy reftoGame $ runCPU isBusy reftoGame
+    when (game ^. isYourTurn) $ runPlayIO Pass isBusy reftoGame
   return e
 
 main :: IO ()
