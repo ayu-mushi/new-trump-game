@@ -1,6 +1,6 @@
 Name:                new-trump-game
 Version:             0.1
---Description:
+Description:         A Haste game
 Homepage:            https://github.com/ayu-mushi/new-trump-game
 License:             MIT
 License-file:        LICENSE
@@ -13,7 +13,7 @@ Cabal-version:       >= 1.18
 
 source-repository head
     type:     git
-    location: 
+    location: git@github.com:ayu-mushi/new-trump-game
 
 Flag haste
     description: build with haste-compiler
@@ -23,24 +23,17 @@ Library
     default-language: Haskell2010
     hs-source-dirs: .
     --other-modules: 
-    exposed-modules: NewTrumpGame.Cards, NewTrumpGame.GameState, NewTrumpGame.Player
+    exposed-modules: Game.BoardTrump.Cards, Game.BoardTrump.Core, Game.BoardTrump.Player, Game.BoardTrump.Util, Game.BoardTrump.CPU
 
     build-depends: base ==4.*, haste-lib >=0.1, transformers, haste-perch, random-shuffle, mtl, lens-family, random
-
-    ghc-options: -Wall
 
 Executable new-trump-game 
     default-language: Haskell2010
     Main-Is: main.hs
     hs-source-dirs: .
-
+    build-depends:
+      base == 4.*,
+      haste-lib >= 0.1,
+      new-trump-game
     if !flag(haste)
-        buildable: False
-
-    if flag(haste)
-        build-depends:
-            base == 4.*,
-            haste-lib >= 0.1,
-            new-trump-game
-
-    ghc-options: -Wall
+      buildable: False

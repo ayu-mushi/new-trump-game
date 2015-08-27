@@ -1,5 +1,5 @@
 {-# LANGUAGE Rank2Types, PackageImports #-}
-module Game.BoardTrump.GameState
+module Game.BoardTrump.Core
   (initGame, Game, Phase(..), selectSbjOfMv, phase, players, draw, summon, move, selectSacrifice, selectObjOfSummon, isYourTurn, turnPlayer, field, cell, movableZone, isSummonable, summonableZone, gen, Play(..), runPlay) where
 import Data.Monoid (mconcat, mempty, (<>), mappend)
 import Data.List (insert)

@@ -13,11 +13,8 @@ import Lens.Family2
 import Lens.Family2.Stock
 import System.Random (mkStdGen)
 
-import Game.BoardTrump.GameState
-import Game.BoardTrump.Player
-import Game.BoardTrump.Cards
+import Game.BoardTrump
 import Game.BoardTrump.Util
-import Game.BoardTrump.CPU
 
 refresh :: IORef Game -> IO ()
 refresh reftoGame = void $ do
