@@ -5,6 +5,7 @@ import Haste.Foreign (ffi)
 import Data.IORef
 import qualified Haste.Perch as P
 import Control.Monad (void, when)
+import Control.Monad.IO.Class (MonadIO)
 import Control.Applicative ((<$>), (<*>))
 import Data.Monoid ((<>))
 import Data.List (foldr1)
@@ -21,13 +22,12 @@ import Game.BoardTrump.CPU
 refresh :: IORef Game -> IO ()
 refresh reftoGame = void $ do
   game <- readIORef reftoGame
-  body <- P.getBody
-  P.build (P.toElem game) body
+  P.getBody >>= P.build (P.toElem game)
 
-withTime :: IO () -> IO ()
+withTime :: MonadIO m => IO () -> m ()
 withTime = setTimeout 1000
 
-appendActWithTime :: IO () -> IO () -> IO ()
+appendActWithTime :: MonadIO m => m a -> IO () -> m ()
 appendActWithTime a b = a >> withTime b
 
 concatActWithTime :: [IO ()] -> IO ()
@@ -76,13 +76,11 @@ whenClickField :: IORef Bool -> IORef Game -> P.Perch
 whenClickField isBusy reftoGame = P.forElems "#field" $ forIndexOfClickedTdElem $ \i j -> do
   game <- readIORef reftoGame
   when (game ^. isYourTurn) $ runPlayIO (WithField (i, j)) isBusy reftoGame
-  return ()
 
 whenClickHand :: IORef Bool -> IORef Game -> P.Perch
 whenClickHand isBusy reftoGame = P.forElems "#yours ol.hand" $ forIndexOfClickedLiElem $ \i -> do
   game <- readIORef reftoGame
   when (game ^. isYourTurn) $ runPlayIO (WithHand i) isBusy reftoGame
-  return ()
 
 passButton :: IORef Bool -> IORef Game -> P.Perch
 passButton isBusy reftoGame = P.forElems "button#pass" $ P.Perch $ \e -> do
@@ -98,6 +96,5 @@ main = do
   isBusy <- newIORef False
   P.getBody >>= P.build (passButton isBusy reftoGame <> whenClickHand isBusy reftoGame <> whenClickField isBusy reftoGame <> P.toElem game)
   withTime $ modifyIORef reftoGame draw >> refresh reftoGame
-
   where
     newStdGen = fmap mkStdGen $ ffi $ toJSString "(function(){ return Math.floor(Math.random() * Math.pow(2, 53)); })"
