@@ -7,7 +7,6 @@ module Game.BoardTrump.Cards
     motionScope) where
 import System.Random.Shuffle (shuffle')
 import System.Random (StdGen)
-import Control.Arrow ((***))
 import Lens.Family2 ((%~))
 import Lens.Family2.Stock (_1, both)
 
