@@ -142,11 +142,11 @@ isMovable game srcX srcY tarX tarY =
 move :: Int -> Int -> Int -> Int -> Game -> Maybe Game
 move srcX srcY tarX tarY game = if isMovable game srcX srcY tarX tarY then justMove srcX srcY tarX tarY game else Nothing
 
-summon :: Int -> Int -> Card -> Game -> Maybe Game
+summon :: Int -> Int -> Card -> Game -> Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
   if isJust $ game ^. field . summonableZone (game ^. isYourTurn) . (ix for)
-    then Nothing
-    else Just $ game
+    then game
+    else game
       & turnPlayer . hand %~ delByIx objOfSummon
       & field . summonableZone (game ^. isYourTurn) . (ix for) .~ (Just $ (game^.isYourTurn, color))
       & (if 0 == (cost $ color)
@@ -186,7 +186,7 @@ runPlay play game = case play of
          Move (x, y)        -> if x == i && y == j then game & phase .~ Main else fromMaybe game $ move x y i j game
          Summon objOfSummon ->
            if (not (game ^. isYourTurn) || i == ((length $ game ^. field) - 1)) && ((game ^. isYourTurn) || i == 0)
-              then fromMaybe game $ summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game
+              then summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game
               else game
          _                  -> game
   Pass -> case game ^. phase of
