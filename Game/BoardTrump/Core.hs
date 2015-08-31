@@ -142,16 +142,18 @@ isMovable game srcX srcY tarX tarY =
 move :: Int -> Int -> Int -> Int -> Game -> Game
 move srcX srcY tarX tarY game = if isMovable game srcX srcY tarX tarY then justMove srcX srcY tarX tarY game else game
 
-summon :: Int -> Int -> Card -> Game -> Game
-summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
-  if isJust $ game ^. field . summonableZone (game ^. isYourTurn) . (ix for)
-    then game
-    else game
-      & turnPlayer . hand %~ delByIx objOfSummon
-      & field . summonableZone (game ^. isYourTurn) . (ix for) .~ (Just $ (game^.isYourTurn, color))
-      & (if 0 == (cost $ color)
-        then phase .~ End
-        else phase .~ Sacrifice (cost color))
+summon :: Int -> Int -> Card -> State Game ()
+summon objOfSummon for card = do
+  p <- use isYourTurn
+  cl <- use $ field . summonableZone p . ix for
+  if isJust cl
+     then return ()
+     else do
+       turnPlayer . hand %= delByIx objOfSummon
+       field . summonableZone p . ix for .= Just (p, card)
+       if cost card == 0
+          then phase .= End
+          else phase .= Sacrifice (cost card)
 
 draw :: Game -> Game
 draw = execState $ do
@@ -184,7 +186,7 @@ runPlay play game = case play of
          Move (x, y)        -> if x == i && y == j then game & phase .~ Main else move x y i j game
          Summon objOfSummon ->
            if (not (game ^. isYourTurn) || i == ((length $ game ^. field) - 1)) && ((game ^. isYourTurn) || i == 0)
-              then summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game
+              then execState (summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon)) game
               else game
          _                  -> game
   Pass -> case game ^. phase of
