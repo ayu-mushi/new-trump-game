@@ -76,10 +76,10 @@ turnPlayer = lens getting setting
 sufficientForSummon :: Card -> [Card] -> Bool
 sufficientForSummon card hand = (cost $ card) <= (foldl (+) (0 - energy card) $ map energy $ hand)
 
-selectObjOfSummon :: Int -> Game -> Maybe Game
+selectObjOfSummon :: Int -> Game -> Game
 selectObjOfSummon i game = if sufficientForSummon (game ^. turnPlayer . hand . ix i) $ game^.turnPlayer.hand
-  then Just $ phase .~ Summon i $ game
-  else Nothing
+  then phase .~ Summon i $ game
+  else game
 
 delByIx :: Int -> [a] -> [a]
 delByIx i xs = (take i xs) ++ (drop (i+1) xs)
@@ -93,15 +93,15 @@ selectSacrifice costOfObjOfSummon i game =
 movableZone :: Card -> Game -> Int -> Int -> [(Int, Int)]
 movableZone c game i j = filter (uncurry (uncurry (isMovable game) (i, j))) $ map ($ (i, j)) $ motionScope (game ^. isYourTurn) c
 
-selectSbjOfMv :: Int -> Int -> Game -> Maybe Game
+selectSbjOfMv :: Int -> Int -> Game -> Game
 selectSbjOfMv i j game =
   case game ^. field . cell i j of
     Just c ->
       if ((game ^. isYourTurn) == (c ^. _1))
          && (not $ null $ movableZone (c^._2) game i j)
-        then Just $ game & phase .~ Move (i, j)
-        else Nothing
-    Nothing -> Nothing
+        then game & phase .~ Move (i, j)
+        else game
+    Nothing -> game
 
 summonableZone :: Bool -> Lens' [[Maybe (Bool, Card)]] [Maybe (Bool, Card)]
 summonableZone isYourTurn = lens (if isYourTurn then last else head) $ \p x -> if isYourTurn then (init p) ++ [x] else x:(tail p)
@@ -113,15 +113,15 @@ addToDeck :: Lens' Game Player -> Card -> Game -> Game
 addToDeck pl card game =
   game & (pl . deck %~ ((card:) . (\x -> shuffle' x (length x) $ game ^. gen))) & gen %~ ((^. _2). (random::StdGen -> (Int, StdGen)))
 
-justMove :: Int -> Int -> Int -> Int -> Game -> Maybe Game
+justMove :: Int -> Int -> Int -> Int -> Game -> Game
 justMove srcX srcY tarX tarY game =
   case game ^. field . cell srcX srcY of
-    Just from -> Just $ game
+    Just from -> game
       & field . cell tarX tarY .~ Just from
       & field . cell srcX srcY .~ Nothing
       & if ((not $ game ^. isYourTurn) && (tarX+1) == (length $ game ^. field))
         || ((game ^. isYourTurn) && tarX == 0) then phase .~ Finish (game ^. isYourTurn) else phase .~ End
-    Nothing -> Nothing
+    Nothing -> game
 
 isInField :: Game -> (Int, Int) -> Bool
 isInField game (i, j) = i >= 0 && j >= 0 && i < (length (game ^. field)) && j < length (head (game ^. field))
@@ -139,8 +139,8 @@ isMovable game srcX srcY tarX tarY =
         else False
     Nothing -> False
 
-move :: Int -> Int -> Int -> Int -> Game -> Maybe Game
-move srcX srcY tarX tarY game = if isMovable game srcX srcY tarX tarY then justMove srcX srcY tarX tarY game else Nothing
+move :: Int -> Int -> Int -> Int -> Game -> Game
+move srcX srcY tarX tarY game = if isMovable game srcX srcY tarX tarY then justMove srcX srcY tarX tarY game else game
 
 summon :: Int -> Int -> Card -> Game -> Game
 summon objOfSummon for color game = let theHand = game ^. turnPlayer . hand in
@@ -171,19 +171,17 @@ runPlay :: Play -> Game -> Game
 runPlay play game = case play of
   WithHand i ->
     case game ^. phase of
-         Main ->
-           case selectObjOfSummon i game of Just news -> news; Nothing -> game
-         Sacrifice costOfObjOfSummon ->
-           selectSacrifice costOfObjOfSummon i game
+         Main -> selectObjOfSummon i game
+         Sacrifice costOfObjOfSummon -> selectSacrifice costOfObjOfSummon i game
          Summon objOfSummon ->
            if i == objOfSummon
               then game & phase .~ Main
-              else case selectObjOfSummon i game of Just news -> news; Nothing -> game
+              else selectObjOfSummon i game
          _ -> game
   WithField (i, j) ->
     case game ^. phase of
-         Main               -> fromMaybe game $ selectSbjOfMv i j game
-         Move (x, y)        -> if x == i && y == j then game & phase .~ Main else fromMaybe game $ move x y i j game
+         Main               -> selectSbjOfMv i j game
+         Move (x, y)        -> if x == i && y == j then game & phase .~ Main else move x y i j game
          Summon objOfSummon ->
            if (not (game ^. isYourTurn) || i == ((length $ game ^. field) - 1)) && ((game ^. isYourTurn) || i == 0)
               then summon objOfSummon j ((game ^. turnPlayer . hand) !! objOfSummon) game
