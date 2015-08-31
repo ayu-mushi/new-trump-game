@@ -40,9 +40,7 @@ turnChange isBusy reftoGame = do
       (modifyIORef reftoGame draw) >> refresh reftoGame,
       do
         game <- readIORef reftoGame
-        case game ^. isYourTurn of
-             True -> return ()
-             False -> runCPU isBusy reftoGame
+        when (not $ game ^. isYourTurn) $ runCPU isBusy reftoGame
         writeIORef isBusy False
       ]
 
