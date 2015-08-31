@@ -1,4 +1,4 @@
-module Game.BoardTrump.Types (Player, initialDraw, playerName, hand, deck, playerId, Card(cardIndex), battle, energy, cost, initDeck, motionScope) where
+module Game.BoardTrump.Types (Player, initialDraw, playerName, hand, deck, playerId, Card, battle, energy, cost, initDeck, motionScope) where
 
 import Lens.Family2
 import Lens.Family2.Unchecked
