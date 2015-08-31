@@ -85,10 +85,13 @@ delByIx :: Int -> [a] -> [a]
 delByIx i xs = (take i xs) ++ (drop (i+1) xs)
 
 selectSacrifice :: Int -> Int -> Game -> Game
-selectSacrifice costOfObjOfSummon i game =
-  if costOfObjOfSummon > (energy $ game ^. turnPlayer . hand . ix i)
-     then game & phase .~ (Sacrifice $ costOfObjOfSummon - (energy $ game ^. turnPlayer . hand . ix i)) & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i
-     else game & addToDeck turnPlayer (game^.turnPlayer.hand.ix i) & turnPlayer . hand %~ delByIx i & phase .~ End
+selectSacrifice costOfObjOfSummon i game = (`execState` game) $ do
+  selected <- use $ turnPlayer . hand . ix i
+  modify $ addToDeck turnPlayer selected
+  turnPlayer . hand %= delByIx i
+  if costOfObjOfSummon > energy selected
+     then phase .= (Sacrifice $ costOfObjOfSummon - (energy selected))
+     else phase .= End
 
 movableZone :: Card -> Game -> Int -> Int -> [(Int, Int)]
 movableZone c game i j = filter (uncurry (uncurry (isMovable game) (i, j))) $ map ($ (i, j)) $ motionScope (game ^. isYourTurn) c
