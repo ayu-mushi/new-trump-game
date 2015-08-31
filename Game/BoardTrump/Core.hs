@@ -113,16 +113,6 @@ addToDeck :: Lens' Game Player -> Card -> Game -> Game
 addToDeck pl card game =
   game & (pl . deck %~ ((card:) . (\x -> shuffle' x (length x) $ game ^. gen))) & gen %~ ((^. _2). (random::StdGen -> (Int, StdGen)))
 
-justMove :: Int -> Int -> Int -> Int -> Game -> Game
-justMove srcX srcY tarX tarY game =
-  case game ^. field . cell srcX srcY of
-    Just from -> game
-      & field . cell tarX tarY .~ Just from
-      & field . cell srcX srcY .~ Nothing
-      & if ((not $ game ^. isYourTurn) && (tarX+1) == (length $ game ^. field))
-        || ((game ^. isYourTurn) && tarX == 0) then phase .~ Finish (game ^. isYourTurn) else phase .~ End
-    Nothing -> game
-
 isInField :: Game -> (Int, Int) -> Bool
 isInField game (i, j) = i >= 0 && j >= 0 && i < (length (game ^. field)) && j < length (head (game ^. field))
 
@@ -140,7 +130,18 @@ isMovable game srcX srcY tarX tarY =
     Nothing -> False
 
 move :: Int -> Int -> Int -> Int -> Game -> Game
-move srcX srcY tarX tarY game = if isMovable game srcX srcY tarX tarY then justMove srcX srcY tarX tarY game else game
+move srcX srcY tarX tarY game =
+  if isMovable game srcX srcY tarX tarY
+     then case game ^. field . cell srcX srcY of
+       Just from -> execState `flip` game $ do
+         field . cell tarX tarY .= Just from
+         field . cell srcX srcY .= Nothing
+         p <- use isYourTurn
+         if (not p && (tarX+1) == (length $ game ^. field)) || (p && tarX == 0)
+           then phase .= Finish p
+           else phase .= End
+       Nothing -> game
+     else game
 
 summon :: Int -> Int -> Card -> State Game ()
 summon objOfSummon for card = do
