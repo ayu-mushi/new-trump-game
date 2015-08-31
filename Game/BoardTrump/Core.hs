@@ -16,8 +16,7 @@ import Control.Monad (forM_, when, zipWithM_)
 import Data.Maybe (isNothing, fromMaybe, isJust, fromJust)
 import "mtl" Control.Monad.State.Strict
 
-import Game.BoardTrump.Cards
-import Game.BoardTrump.Player
+import Game.BoardTrump.Types
 import Game.BoardTrump.Util
 
 fieldToElem :: [[Maybe (Bool, Card)]] -> P.Perch

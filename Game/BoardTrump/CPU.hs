@@ -5,7 +5,7 @@ import Lens.Family2.Stock (_2)
 import Data.Maybe (fromJust, mapMaybe, catMaybes, isNothing, isJust)
 import System.Random (Random(randomR), StdGen)
 
-import Game.BoardTrump.Player (hand)
+import Game.BoardTrump.Types
 import Game.BoardTrump.Core
 import Game.BoardTrump.Util (ix, forPlaneWithIx)
 
