@@ -1,4 +1,4 @@
-Name:                new-trump-game
+Name:                board-trump
 Version:             0.1
 Description:         A Haste game
 Homepage:            https://github.com/ayu-mushi/new-trump-game
@@ -15,25 +15,25 @@ source-repository head
     type:     git
     location: git@github.com:ayu-mushi/new-trump-game
 
-Flag haste
-    description: build with haste-compiler
-    default: False
-
 Library
     default-language: Haskell2010
     hs-source-dirs: .
     --other-modules: 
     exposed-modules: Game.BoardTrump.Cards, Game.BoardTrump.Core, Game.BoardTrump.Player, Game.BoardTrump.Util, Game.BoardTrump.CPU
 
-    build-depends: base ==4.*, haste-lib >=0.1, transformers, haste-perch, random-shuffle, mtl, lens-family, random
+    build-depends: base ==4.*, haste-lib ==0.4.*, transformers, haste-perch, random-shuffle, mtl, lens-family, random
 
-Executable new-trump-game 
+Executable board-trump
     default-language: Haskell2010
     Main-Is: main.hs
     hs-source-dirs: .
     build-depends:
       base == 4.*,
-      haste-lib >= 0.1,
-      new-trump-game
-    if !flag(haste)
-      buildable: False
+      haste-lib == 0.4.*,
+      board-trump,
+      transformers,
+      lens-family,
+      haste-perch,
+      random-shuffle,
+      random,
+      mtl
