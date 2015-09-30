@@ -245,7 +245,7 @@ instance P.ToElem Game where
         P.Perch $ \e -> do
           fieldTrs <- elemsByQS e "#field tr"
           sbjTd <- fmap (!! (sbjOfMv ^. _2)) $ elemsByQS (fieldTrs !! (sbjOfMv^._1)) "td"
-          setAttr sbjTd "id" "moving-subject"
+          setAttr sbjTd "id" "subject-of-moving"
           fieldTdss <- mapM (elemsByQS `flip` "td") fieldTrs
           mapM_ (setClass `flip` "motion-scope" `flip` True) $
             (map (\possibleMoving -> fieldTdss ^. ix (possibleMoving sbjOfMv ^. _1) . ix (possibleMoving sbjOfMv ^. _2))
