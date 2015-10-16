@@ -11,3 +11,5 @@ build/index.html : index.html
 
 clean:
 	rm build/main.js build/board-trump.css build/index.html
+
+rebuild: clean all
