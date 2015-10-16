@@ -140,7 +140,7 @@ move srcX srcY tarX tarY game =
          field . cell tarX tarY .= Just from
          field . cell srcX srcY .= Nothing
          p <- use isYourTurn
-         if (not p && (tarX+1) == (length $ game ^. field)) || (p && tarX == 0)
+         if 1 == tarY && ((not p && (tarX+1) == (length $ game ^. field)) || (p && tarX == 0))
            then phase .= Finish p
            else phase .= End
        Nothing -> game
