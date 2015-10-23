@@ -16,9 +16,9 @@ body {
       color: #dd00fd; }
     #field td.movable-card.computers-card:hover {
       color: #16ff00; }
-    #field td#moving-subject.your-card {
+    #field td#subject-of-moving.your-card {
       color: #dd00fd; }
-    #field td#moving-subject.computers-card {
+    #field td#subject-of-moving.computers-card {
       color: #16ff00; }
     #field td.summonable-zone {
       background-color: #14001b; }
