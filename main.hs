@@ -6,7 +6,7 @@ import Data.IORef
 import qualified Haste.Perch as P
 import Control.Monad (void, when)
 import Control.Monad.IO.Class (MonadIO)
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative (liftA3)
 import Data.Monoid ((<>))
 import Data.List (foldr1)
 import Lens.Family2
@@ -84,12 +84,29 @@ passButton isBusy reftoGame = P.forElems "button#pass" $ P.Perch $ \e -> do
     when (game ^. isYourTurn) $ runPlayIO Pass isBusy reftoGame
   return e
 
-main :: IO ()
-main = do
-  game <- initGame <$> newStdGen <*> newStdGen <*> newStdGen
-  reftoGame <- newIORef game
-  isBusy <- newIORef False
-  P.getBody >>= P.build (passButton isBusy reftoGame <> whenClickHand isBusy reftoGame <> whenClickField isBusy reftoGame <> P.toElem game)
-  withTime $ modifyIORef reftoGame draw >> refresh reftoGame
+gameStart :: IO (IORef Game)
+gameStart = do
+  game <- liftA3 initGame newStdGen newStdGen newStdGen
+  newIORef game
   where
     newStdGen = fmap mkStdGen $ ffi $ toJSString "(function(){ return Math.floor(Math.random() * Math.pow(2, 53)); })"
+
+resetButton :: IORef Game -> IORef Bool -> P.Perch
+resetButton reftoGame isBusy = P.forElems "button#reset" $ P.Perch $ \e -> do
+  setCallback e OnClick $ \_ _ -> do
+    p <- readIORef isBusy
+    when (not p) $ do
+      writeIORef isBusy True
+      gameStart >>= readIORef >>= writeIORef reftoGame
+      game <- readIORef reftoGame
+      P.getBody >>= P.build (P.toElem game)
+      withTime $ modifyIORef reftoGame draw >> refresh reftoGame >> writeIORef isBusy False
+  return e
+
+main :: IO ()
+main = do
+  reftoGame <- gameStart
+  game <- readIORef reftoGame
+  isBusy <- newIORef False
+  P.getBody >>= P.build (resetButton reftoGame isBusy <> passButton isBusy reftoGame <> whenClickHand isBusy reftoGame <> whenClickField isBusy reftoGame <> P.toElem game)
+  withTime $ modifyIORef reftoGame draw >> refresh reftoGame
