@@ -93,14 +93,7 @@ gameStart = do
 
 resetButton :: IORef Game -> IORef Bool -> P.Perch
 resetButton reftoGame isBusy = P.forElems "button#reset" $ P.Perch $ \e -> do
-  setCallback e OnClick $ \_ _ -> do
-    p <- readIORef isBusy
-    when (not p) $ do
-      writeIORef isBusy True
-      gameStart >>= readIORef >>= writeIORef reftoGame
-      game <- readIORef reftoGame
-      P.getBody >>= P.build (P.toElem game)
-      withTime $ modifyIORef reftoGame draw >> refresh reftoGame >> writeIORef isBusy False
+  setCallback e OnClick $ \_ _ -> ffi $ toJSString "(function(){ location.reload() })"
   return e
 
 main :: IO ()
